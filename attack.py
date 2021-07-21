@@ -98,6 +98,7 @@ class CWInfAttack(nn.Module):
         # images = np.expand_dims(image, 0)
         if is_tensor:
             images = torch.Tensor(images).to(self.device)
+        print("image denormalize max")
         print(torch.max(images))
         return images
 
@@ -175,8 +176,6 @@ class CWInfAttack(nn.Module):
     def get_f_value(outputs, target):
         target_mask = torch.zeros_like(outputs)
         target_mask[:, target] = 1
-        print("target_mask:")
-        print(target_mask)
         src_p = torch.max(outputs * (1 - target_mask))
         target_p = torch.max(outputs * target_mask)
         f6 = torch.relu(src_p - target_p)
