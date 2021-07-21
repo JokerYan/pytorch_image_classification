@@ -109,16 +109,13 @@ class CWInfAttack(nn.Module):
         # image passed in are normalized, thus not in range [0,1]
         images = self.denormalize(images)
 
-        dummy_labels = torch.zeros(images.shape[0]).to(self.device)
         w = self.get_init_w(images).detach()
         w.requires_grad = True
         images.requires_grad = False
 
         tau = 1
 
-        original_output = None
         best_adv_images = images.clone().detach()
-        best_output_x = None
         best_acc = 0
         best_delta = 1
 
@@ -128,11 +125,9 @@ class CWInfAttack(nn.Module):
 
         for step in range(self.steps):
             adv_images = self.w_to_adv_images(w)
-            output_x, output_c = self.model(self.Normalize(adv_images))
-            if original_output is None:
-                original_output = output_x
+            output = self.model(self.Normalize(adv_images))
 
-            f_value = self.c * self.get_f_value(output_c, target)
+            f_value = self.c * self.get_f_value(output, target)
             delta = self.w_to_delta(w, images)
             distance = self.inf_distance(delta, tau)
             loss = f_value + distance
@@ -147,17 +142,15 @@ class CWInfAttack(nn.Module):
             optimizer.step()
 
             # print out results
-            acc = cal_accuracy(output_c, dummy_labels)
+            acc = cal_accuracy(output, target)
             avg_delta = torch.mean(delta)
             print('Acc: {}\tDelta: {}'.format(acc, avg_delta))
             if acc > best_acc:
                 best_adv_images = adv_images
-                best_output_x = output_x
                 best_acc = acc
                 best_delta = avg_delta
             if acc == best_acc and avg_delta < best_delta:
                 best_adv_images = adv_images
-                best_output_x = output_x
                 best_acc = acc
                 best_delta = avg_delta
             if acc == 1:
@@ -171,8 +164,6 @@ class CWInfAttack(nn.Module):
             self.counter += 1
             save_image_stack(images, 'original input {} {}'.format(self.counter, best_delta))
             save_image_stack(best_adv_images, 'adversarial input {} {}'.format(self.counter, best_delta))
-            save_image_stack(original_output, 'original output {} {}'.format(self.counter, best_delta))
-            save_image_stack(best_output_x, 'adversarial output {} {}'.format(self.counter, best_delta))
             # delta_image = torch.abs(best_adv_images - images)
             # print(torch.max(delta_image))
             # adjusted_delta = delta_image / torch.max(delta_image)
