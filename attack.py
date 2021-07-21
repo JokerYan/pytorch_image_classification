@@ -89,7 +89,7 @@ class CWInfAttack(nn.Module):
         if is_tensor:
             images = images.clone().detach().cpu().numpy()
         image = np.squeeze(images)
-        image = np.multiply(image, self.std)
+        image = np.multiply(self.std, image)
         mean = np.multiply(np.ones_like(image), self.mean)
         image = image + mean
         images = np.unsqueeze(image, 0)
