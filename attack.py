@@ -98,8 +98,6 @@ class CWInfAttack(nn.Module):
         # images = np.expand_dims(image, 0)
         if is_tensor:
             images = torch.Tensor(images).to(self.device)
-        print("image denormalize max")
-        print(torch.max(images))
         return images
 
     def forward(self, images, labels):
