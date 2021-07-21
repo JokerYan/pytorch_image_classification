@@ -89,10 +89,11 @@ class CWInfAttack(nn.Module):
         if is_tensor:
             images = images.clone().detach().cpu().numpy()
         image = np.squeeze(images)
-        image = np.multiply(self.std, image)
+        std = np.expand_dims(self.std, [1, 2])
+        image = np.multiply(image, std)
         mean = np.multiply(np.ones_like(image), self.mean)
         image = image + mean
-        images = np.unsqueeze(image, 0)
+        images = np.expand_dims(image, 0)
         if is_tensor:
             images = torch.Tensor(images).to(self.device)
         print(torch.max(images))
