@@ -93,17 +93,18 @@ def main():
     else:
         output_dir = pathlib.Path(config.test.output_dir)
         output_dir.mkdir(exist_ok=True, parents=True)
-    print(output_dir)
 
     logger = create_logger(name=__name__, distributed_rank=get_rank())
 
     model = create_model(config)
     model = apply_data_parallel_wrapper(config, model)
+    # checkpointer = Checkpointer(model,
+    #                             checkpoint_dir=output_dir,
+    #                             # save_dir=output_dir,
+    #                             logger=logger,
+    #                             distributed_rank=get_rank())
     checkpointer = Checkpointer(model,
-                                # checkpoint_dir=output_dir,
-                                save_dir=output_dir,
-                                logger=logger,
-                                distributed_rank=get_rank())
+                                save_dir=output_dir)
     checkpointer.load(config.test.checkpoint)
 
     test_loader = create_dataloader(config, is_train=False)
