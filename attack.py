@@ -55,12 +55,9 @@ def load_config(options=None):
 
 def cal_accuracy(output, target):
     with torch.no_grad():
-        ones = torch.ones_like(output)
-        zeros = torch.zeros_like(output)
-        prediction = torch.where(output > 0.5, ones, zeros)
-        target = torch.where(target > 0.5, ones, zeros)
-        # print(prediction, target)
-        return 1 - torch.mean(torch.abs(prediction - target))
+        if torch.argmax(output) == torch.argmax(target):
+            return 1
+        return 0
 
 
 class CWInfAttack(nn.Module):
