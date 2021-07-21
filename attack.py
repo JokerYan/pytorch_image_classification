@@ -124,7 +124,7 @@ class CWInfAttack(nn.Module):
 
         optimizer = torch.optim.SGD([w], lr=self.lr, momentum=self.momentum)
         # random target
-        target = torch.randint(0, 9, labels.shape) + labels
+        target = torch.randint(0, 9, labels.shape).to(self.device) + labels
 
         for step in range(self.steps):
             adv_images = self.w_to_adv_images(w)
