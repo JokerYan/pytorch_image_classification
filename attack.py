@@ -6,7 +6,9 @@ import time
 
 import numpy as np
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
+import torchvision.transforms as torch_transforms
 import tqdm
 
 from fvcore.common.checkpoint import Checkpointer
@@ -19,14 +21,23 @@ from pytorch_image_classification import (
     get_default_config,
     update_config,
 )
+from pytorch_image_classification.transforms import _get_dataset_stats
 from pytorch_image_classification.utils import (
     AverageMeter,
     create_logger,
     get_rank,
 )
+from utils.debug_tools import clear_debug_image, save_image_stack
+
+# attack parameters temporarily attached here
+c = 2
+lr = 0.1
+momentum = 0.9
+steps = 20
+batch_size = 1
 
 
-def load_config():
+def load_config(options=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', type=str, required=True)
     parser.add_argument('options', default=None, nargs=argparse.REMAINDER)
@@ -35,58 +46,188 @@ def load_config():
     config = get_default_config()
     config.merge_from_file(args.config)
     config.merge_from_list(args.options)
+    if options:
+        config.merge_from_list(options)
     update_config(config)
     config.freeze()
     return config
 
 
-def evaluate(config, model, test_loader, loss_func, logger):
+def cal_accuracy(output, target):
+    with torch.no_grad():
+        ones = torch.ones_like(output)
+        zeros = torch.zeros_like(output)
+        prediction = torch.where(output > 0.5, ones, zeros)
+        target = torch.where(target > 0.5, ones, zeros)
+        # print(prediction, target)
+        return 1 - torch.mean(torch.abs(prediction - target))
+
+
+class CWInfAttack(nn.Module):
+    '''
+    c:  coefficient of f value to be added to distance.
+        Higher the c, higher the success rate and higher the distance
+        see fig 2 of paper
+    '''
+    def __init__(self, model, config, c, lr, momentum, steps, device='cuda'):
+        super(CWInfAttack, self).__init__()
+
+        self.model = model
+        self.config = config
+        self.mean, self.std = _get_dataset_stats(config)
+        self.c = c
+        self.lr = lr
+        self.steps = steps
+        self.device = device
+        self.momentum = momentum
+        self.Normalize = torch_transforms.Normalize(
+            self.mean, self.std
+        )
+        self.counter = 0
+
+    def denormalize(self, images, is_tensor=True):
+        if is_tensor:
+            images = images.clone().detach().cpu().numpy()
+        images = np.multiply(images, self.std)
+        mean = np.multiply(np.ones_like(images), self.mean)
+        images = images + mean
+        if is_tensor:
+            images = torch.Tensor(images).to(self.device)
+        print(torch.max(images))
+        return images
+
+    def forward(self, images, labels):
+        images = images.clone().detach().to(self.device)
+        labels = labels.clone().detach().to(self.device)
+        # image passed in are normalized, thus not in range [0,1]
+        images = self.denormalize(images)
+
+        dummy_labels = torch.zeros(images.shape[0]).to(self.device)
+        w = self.get_init_w(images).detach()
+        w.requires_grad = True
+        images.requires_grad = False
+
+        tau = 1
+
+        original_output = None
+        best_adv_images = images.clone().detach()
+        best_output_x = None
+        best_acc = 0
+        best_delta = 1
+
+        optimizer = torch.optim.SGD([w], lr=self.lr, momentum=self.momentum)
+        # random target
+        target = torch.randint(0, 9, labels.shape) + labels
+
+        for step in range(self.steps):
+            adv_images = self.w_to_adv_images(w)
+            output_x, output_c = self.model(self.Normalize(adv_images))
+            if original_output is None:
+                original_output = output_x
+
+            f_value = self.c * self.get_f_value(output_c, target)
+            delta = self.w_to_delta(w, images)
+            distance = self.inf_distance(delta, tau)
+            loss = f_value + distance
+
+            # update tau
+            if torch.max(delta) < tau:
+                tau = 0.9 * tau
+
+            # compute gradient and do update step
+            optimizer.zero_grad()
+            loss.sum().backward()
+            optimizer.step()
+
+            # print out results
+            acc = cal_accuracy(output_c, dummy_labels)
+            avg_delta = torch.mean(delta)
+            print('Acc: {}\tDelta: {}'.format(acc, avg_delta))
+            if acc > best_acc:
+                best_adv_images = adv_images
+                best_output_x = output_x
+                best_acc = acc
+                best_delta = avg_delta
+            if acc == best_acc and avg_delta < best_delta:
+                best_adv_images = adv_images
+                best_output_x = output_x
+                best_acc = acc
+                best_delta = avg_delta
+            if acc == 1:
+                break
+        print('Batch finished: Acc: {}\tDelta: {}'.format(best_acc, best_delta))
+        print('>>>>>')
+        # pickle.dump(best_adv_images, open('adv_images_batch.pkl', 'wb'))
+        if self.counter == 0:
+            clear_debug_image()
+        if self.counter < 10 and best_acc == 1:
+            self.counter += 1
+            save_image_stack(images, 'original input {} {}'.format(self.counter, best_delta))
+            save_image_stack(best_adv_images, 'adversarial input {} {}'.format(self.counter, best_delta))
+            save_image_stack(original_output, 'original output {} {}'.format(self.counter, best_delta))
+            save_image_stack(best_output_x, 'adversarial output {} {}'.format(self.counter, best_delta))
+            # delta_image = torch.abs(best_adv_images - images)
+            # print(torch.max(delta_image))
+            # adjusted_delta = delta_image / torch.max(delta_image)
+            # save_image_stack(adjusted_delta, 'adjusted delta')
+
+        return best_adv_images, best_acc, best_delta
+
+    @staticmethod
+    def get_f_value(outputs, target):
+        target_mask = torch.zeros_like(outputs)
+        target_mask[:, target] = 1
+        print("target_mask:")
+        print(target_mask)
+        src_p = torch.max(outputs * (1 - target_mask))
+        target_p = torch.max(outputs * target_mask)
+        f6 = torch.relu(src_p - target_p)
+        return f6
+
+    @staticmethod
+    def inf_distance(delta, tau):
+        dist_vec = torch.relu(delta - tau)
+        return torch.sum(dist_vec)
+
+    @staticmethod
+    def w_to_adv_images(w):
+        return 1/2 * (torch.tanh(w) + 1)
+
+    @staticmethod
+    def w_to_delta(w, x):
+        return torch.abs(CWInfAttack.w_to_adv_images(w) - x)
+
+    @staticmethod
+    def get_init_w(x):
+        return torch.atanh(2 * x - 1)
+
+
+def attack(config, model, test_loader, loss_func, logger):
     device = torch.device(config.device)
 
     model.eval()
+    attack_model = CWInfAttack(model, config, c, lr, momentum, steps).cuda()
 
-    loss_meter = AverageMeter()
-    correct_meter = AverageMeter()
-    start = time.time()
+    accuracy_meter = AverageMeter()
+    delta_meter = AverageMeter()
+    adv_image_list = []
 
-    pred_raw_all = []
-    pred_prob_all = []
-    pred_label_all = []
-    with torch.no_grad():
-        for data, targets in tqdm.tqdm(test_loader):
-            data = data.to(device)
-            targets = targets.to(device)
+    for data, targets in tqdm.tqdm(test_loader):
+        data = data.to(device)
+        targets = targets.to(device)
 
-            outputs = model(data)
-            loss = loss_func(outputs, targets)
+        adv_images, acc, delta = attack_model(data, targets)
+        accuracy_meter.update(acc, 1)
+        delta_meter.update(delta, 1)
+        adv_image_list.append(adv_images)
 
-            pred_raw_all.append(outputs.cpu().numpy())
-            pred_prob_all.append(F.softmax(outputs, dim=1).cpu().numpy())
+    logger.info(f'Accuracy {accuracy_meter.avg:.4f} Delta {delta_meter.avg:.4f}')
 
-            _, preds = torch.max(outputs, dim=1)
-            pred_label_all.append(preds.cpu().numpy())
-
-            loss_ = loss.item()
-            correct_ = preds.eq(targets).sum().item()
-            num = data.size(0)
-
-            loss_meter.update(loss_, num)
-            correct_meter.update(correct_, 1)
-
-        accuracy = correct_meter.sum / len(test_loader.dataset)
-
-        elapsed = time.time() - start
-        logger.info(f'Elapsed {elapsed:.2f}')
-        logger.info(f'Loss {loss_meter.avg:.4f} Accuracy {accuracy:.4f}')
-
-    preds = np.concatenate(pred_raw_all)
-    probs = np.concatenate(pred_prob_all)
-    labels = np.concatenate(pred_label_all)
-    return preds, probs, labels, loss_meter.avg, accuracy
+    return adv_image_list, accuracy_meter.avg, delta_meter.avg
 
 
 def main():
-    config = load_config()
+    config = load_config(["test.batch_size", 1])
 
     if config.test.output_dir is None:
         output_dir = pathlib.Path(config.test.checkpoint).parent
@@ -98,25 +239,21 @@ def main():
 
     model = create_model(config)
     model = apply_data_parallel_wrapper(config, model)
+    # checkpointer = Checkpointer(model,
+    #                             checkpoint_dir=output_dir,
+    #                             # save_dir=output_dir,
+    #                             logger=logger,
+    #                             distributed_rank=get_rank())
     checkpointer = Checkpointer(model,
-                                checkpoint_dir=output_dir,
-                                logger=logger,
-                                distributed_rank=get_rank())
+                                save_dir=output_dir)
     checkpointer.load(config.test.checkpoint)
 
     test_loader = create_dataloader(config, is_train=False)
     _, test_loss = create_loss(config)
 
-    preds, probs, labels, loss, acc = evaluate(config, model, test_loader,
-                                               test_loss, logger)
+    attack(config, model, test_loader, test_loss, logger)
 
-    output_path = output_dir / f'predictions.npz'
-    np.savez(output_path,
-             preds=preds,
-             probs=probs,
-             labels=labels,
-             loss=loss,
-             acc=acc)
+
 
 
 if __name__ == '__main__':
