@@ -100,7 +100,8 @@ def main():
     model = create_model(config)
     model = apply_data_parallel_wrapper(config, model)
     checkpointer = Checkpointer(model,
-                                checkpoint_dir=output_dir,
+                                # checkpoint_dir=output_dir,
+                                save_dir=output_dir,
                                 logger=logger,
                                 distributed_rank=get_rank())
     checkpointer.load(config.test.checkpoint)
