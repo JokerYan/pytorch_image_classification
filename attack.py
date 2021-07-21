@@ -208,6 +208,7 @@ def attack(config, model, test_loader, loss_func, logger):
     adv_image_list = []
 
     for data, targets in tqdm.tqdm(test_loader):
+        print(data.shape)
         data = data.to(device)
         targets = targets.to(device)
 
