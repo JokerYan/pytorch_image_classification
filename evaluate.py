@@ -89,7 +89,7 @@ def main():
     config = load_config()
 
     if config.test.output_dir is None:
-        output_dir = pathlib.Path(config.test.checkpoint)
+        output_dir = pathlib.Path(config.test.checkpoint).parent
     else:
         output_dir = pathlib.Path(config.test.output_dir)
         output_dir.mkdir(exist_ok=True, parents=True)
