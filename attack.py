@@ -170,6 +170,7 @@ class CWInfAttack(nn.Module):
     @staticmethod
     def get_f_value(outputs, target):
         target_mask = torch.zeros_like(outputs)
+        print(target_mask[:, target])
         target_mask[:, target] = 1
         src_p = torch.max(outputs * (1 - target_mask))
         target_p = torch.max(outputs * target_mask)
@@ -205,7 +206,6 @@ def attack(config, model, test_loader, loss_func, logger):
     adv_image_list = []
 
     for data, targets in tqdm.tqdm(test_loader):
-        print(data.shape)
         data = data.to(device)
         targets = targets.to(device)
 
