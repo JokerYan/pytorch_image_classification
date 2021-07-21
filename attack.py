@@ -88,15 +88,19 @@ class CWInfAttack(nn.Module):
     def denormalize(self, images, is_tensor=True):
         if is_tensor:
             images = images.clone().detach().cpu().numpy()
-        images = np.multiply(images, self.std)
-        mean = np.multiply(np.ones_like(images), self.mean)
-        images = images + mean
+        image = torch.squeeze(images)
+        image = np.multiply(image, self.std)
+        mean = np.multiply(np.ones_like(image), self.mean)
+        image = image + mean
+        images = torch.unsqueeze(image, 0)
         if is_tensor:
             images = torch.Tensor(images).to(self.device)
         print(torch.max(images))
         return images
 
     def forward(self, images, labels):
+        # must be single image
+        assert images.shape[0] == 1
         images = images.clone().detach().to(self.device)
         labels = labels.clone().detach().to(self.device)
         # image passed in are normalized, thus not in range [0,1]
