@@ -88,12 +88,14 @@ class CWInfAttack(nn.Module):
     def denormalize(self, images, is_tensor=True):
         if is_tensor:
             images = images.clone().detach().cpu().numpy()
-        image = np.squeeze(images)
-        std = np.expand_dims(self.std, [1, 2])
-        image = np.multiply(image, std)
-        mean = np.multiply(np.ones_like(image), self.mean)
-        image = image + mean
-        images = np.expand_dims(image, 0)
+        # image = np.squeeze(images)
+        std = np.expand_dims(self.std, [0, 2, 3])
+        mean = np.expand_dims(self.mean, [0, 2, 3])
+
+        images = np.multiply(images, std)
+        mean = np.multiply(np.ones_like(images), mean)
+        images = images + mean
+        # images = np.expand_dims(image, 0)
         if is_tensor:
             images = torch.Tensor(images).to(self.device)
         print(torch.max(images))
