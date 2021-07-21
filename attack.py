@@ -93,7 +93,6 @@ def main():
     else:
         output_dir = pathlib.Path(config.test.output_dir)
         output_dir.mkdir(exist_ok=True, parents=True)
-    print(output_dir)
 
     logger = create_logger(name=__name__, distributed_rank=get_rank())
 
