@@ -31,9 +31,9 @@ from utils.debug_tools import clear_debug_image, save_image_stack
 
 # attack parameters temporarily attached here
 c = 2
-lr = 0.1
+lr = 0.01
 momentum = 0.9
-steps = 20
+steps = 100
 batch_size = 1
 
 
