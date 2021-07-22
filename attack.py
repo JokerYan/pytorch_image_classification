@@ -144,8 +144,6 @@ class CWInfAttack(nn.Module):
             acc = cal_accuracy(output, target)
             avg_delta = torch.mean(delta)
             print('Acc: {}\tDelta: {}'.format(acc, avg_delta))
-            print(target)
-            print(output)
             if acc > best_acc:
                 best_adv_images = adv_images
                 best_acc = acc
@@ -177,7 +175,6 @@ class CWInfAttack(nn.Module):
         src_p = torch.max(outputs * (1 - target))
         target_p = torch.max(outputs * target)
         f6 = torch.relu(src_p - target_p)
-        print(outputs, target, src_p, target_p)
         return f6
 
     @staticmethod
