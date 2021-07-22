@@ -32,7 +32,7 @@ from utils.debug_tools import clear_debug_image, save_image_stack
 # attack parameters temporarily attached here
 c = 10
 lr = 0.1
-# momentum = 0.9
+momentum = 0.9
 steps = 100
 batch_size = 1
 
@@ -115,7 +115,9 @@ class CWInfAttack(nn.Module):
         best_acc = 0
         best_delta = 1
 
+        # optimizer = torch.optim.SGD([w], lr=self.lr, momentum=self.momentum)
         optimizer = torch.optim.Adam([w], lr=self.lr)
+
         # random target
         # labels is of shape [1], only a number from 0 to 9
         target_c = torch.remainder(torch.randint(0, 9, labels.shape).to(self.device) + labels, 10)
