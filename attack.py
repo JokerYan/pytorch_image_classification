@@ -117,7 +117,9 @@ class CWInfAttack(nn.Module):
 
         optimizer = torch.optim.SGD([w], lr=self.lr, momentum=self.momentum)
         # random target
-        target = torch.remainder(torch.randint(0, 9, labels.shape).to(self.device) + labels, 10)
+        target_c = torch.remainder(torch.randint(0, 9, labels.shape).to(self.device) + labels, 10)
+        target = torch.zeros_like(labels)
+        target[:, target_c] = 1
 
         for step in range(self.steps):
             adv_images = self.w_to_adv_images(w)
@@ -171,10 +173,8 @@ class CWInfAttack(nn.Module):
 
     @staticmethod
     def get_f_value(outputs, target):
-        target_mask = torch.zeros_like(outputs)
-        target_mask[:, target] = 1
-        src_p = torch.max(outputs * (1 - target_mask))
-        target_p = torch.max(outputs * target_mask)
+        src_p = torch.max(outputs * (1 - target))
+        target_p = torch.max(outputs * target)
         f6 = torch.relu(src_p - target_p)
         return f6
 
