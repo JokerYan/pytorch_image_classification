@@ -115,8 +115,8 @@ class CWInfAttack(nn.Module):
         best_acc = 0
         best_delta = 1
 
-        # optimizer = torch.optim.SGD([w], lr=self.lr, momentum=self.momentum)
-        optimizer = torch.optim.Adam([w], lr=self.lr)
+        optimizer = torch.optim.SGD([w], lr=self.lr, momentum=self.momentum)
+        # optimizer = torch.optim.Adam([w], lr=self.lr)
 
         # random target
         # labels is of shape [1], only a number from 0 to 9
