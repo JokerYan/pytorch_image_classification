@@ -145,7 +145,7 @@ class CWInfAttack(nn.Module):
             # print out results
             acc = cal_accuracy(output, target)
             avg_delta = torch.mean(delta)
-            print('Acc: {}\tDelta: {}'.format(acc, avg_delta))
+            # print('Acc: {}\tDelta: {}'.format(acc, avg_delta))
             if acc > best_acc:
                 best_adv_images = adv_images
                 best_acc = acc
@@ -156,7 +156,7 @@ class CWInfAttack(nn.Module):
                 best_delta = avg_delta
             if acc == 1:
                 break
-        print('Batch finished: Acc: {}\tDelta: {}'.format(best_acc, best_delta))
+        print('Batch finished: Acc: {}\tDelta: {}\tStep: {}'.format(best_acc, best_delta, step))
         print('>>>>>')
         # pickle.dump(best_adv_images, open('adv_images_batch.pkl', 'wb'))
         if self.counter == 0:
