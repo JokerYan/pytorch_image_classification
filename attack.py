@@ -205,7 +205,7 @@ def attack(config, model, test_loader, loss_func, logger):
     delta_meter = AverageMeter()
     adv_image_list = []
 
-    for data, targets in tqdm.tqdm(test_loader):
+    for data, targets in test_loader:
         data = data.to(device)
         targets = targets.to(device)
 
