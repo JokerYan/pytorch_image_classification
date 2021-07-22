@@ -177,6 +177,7 @@ class CWInfAttack(nn.Module):
         src_p = torch.max(outputs * (1 - target))
         target_p = torch.max(outputs * target)
         f6 = torch.relu(src_p - target_p)
+        print(outputs, target, src_p, target_p)
         return f6
 
     @staticmethod
