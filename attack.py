@@ -30,10 +30,10 @@ from pytorch_image_classification.utils import (
 from utils.debug_tools import clear_debug_image, save_image_stack
 
 # attack parameters temporarily attached here
-c = 10
+c = 3
 lr = 0.01
 momentum = 0.9
-steps = 100
+steps = 200
 batch_size = 1
 
 
@@ -115,8 +115,8 @@ class CWInfAttack(nn.Module):
         best_acc = 0
         best_delta = 1
 
-        optimizer = torch.optim.SGD([w], lr=self.lr, momentum=self.momentum)
-        # optimizer = torch.optim.Adam([w], lr=self.lr)
+        # optimizer = torch.optim.SGD([w], lr=self.lr, momentum=self.momentum)
+        optimizer = torch.optim.Adam([w], lr=self.lr)
 
         # random target
         # labels is of shape [1], only a number from 0 to 9
