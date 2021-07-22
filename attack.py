@@ -205,7 +205,9 @@ def attack(config, model, test_loader, loss_func, logger):
     delta_meter = AverageMeter()
     adv_image_list = []
 
-    for data, targets in test_loader:
+    for i, (data, targets) in enumerate(test_loader):
+        if i == 100:
+            break
         data = data.to(device)
         targets = targets.to(device)
 
