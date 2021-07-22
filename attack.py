@@ -117,9 +117,9 @@ class CWInfAttack(nn.Module):
 
         optimizer = torch.optim.SGD([w], lr=self.lr, momentum=self.momentum)
         # random target
-        print('label shape: {}'.format(labels.shape))
+        # labels is of shape [1], only a number from 0 to 9
         target_c = torch.remainder(torch.randint(0, 9, labels.shape).to(self.device) + labels, 10)
-        target = torch.zeros_like(labels)
+        target = torch.zeros(1, self.config.dataset.n_classes)
         target[:, target_c] = 1
 
         for step in range(self.steps):
