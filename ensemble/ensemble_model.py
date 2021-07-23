@@ -12,12 +12,12 @@ class EnsembleModel(nn.Module):
         for model in self.model_list:
             output = model(x)
             print("output before softmax", output)
-            output = torch.softmax(output, dim=0)
+            output = torch.softmax(output, dim=1)
             print("output after softmax", output)
             output_list.append(output)
         output_list = torch.stack(output_list)
-        output_mean = torch.mean(output_list, dim=0)
-        output_variance = torch.var(output_list, dim=0)
+        output_mean = torch.mean(output_list, dim=1)
+        output_variance = torch.var(output_list, dim=1)
 
         # calculate output_variance after sigmoid
         variance_thresh = 0.03
@@ -29,8 +29,8 @@ class EnsembleModel(nn.Module):
         # concatenate output with one extra fake output
         # if the original output is of dim n, the new output is of dim (n + 1)
         output_c = torch.min(output_mean, (1 - output_variance_sigmoid))
-        output_fake = torch.max(output_variance, dim=0, keepdim=True).values
-        output_final = torch.cat([output_c, output_fake], 0)
+        output_fake = torch.max(output_variance, dim=1, keepdim=True).values
+        output_final = torch.cat([output_c, output_fake], 1)
         print("output_mean", output_mean)
         print("output_c", output_c)
         print("output_fake", output_fake)
