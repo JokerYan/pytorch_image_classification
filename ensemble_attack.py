@@ -41,24 +41,24 @@ batch_size = 1
 
 def load_config(options=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', type=str, required=True)
+    parser.add_argument('--config', type=str, nargs="+", required=True)
     parser.add_argument('--output_dir', type=str, nargs="+", required=True)
     parser.add_argument('--checkpoint', type=str, nargs="+", required=True)  # relative path from output_dir
     parser.add_argument('options', default=None, nargs=argparse.REMAINDER)
     args = parser.parse_args()
 
     config = get_default_config()
-    config.merge_from_file(args.config)
-    config.merge_from_list(args.options)
-    if options:
-        config.merge_from_list(options)
 
-    # these two lists point to the directory of different models, thus must be of the same size (number of models)
-    assert len(args.output_dir) == len(args.checkpoint)
+    # the length of these lists are the number of models
+    assert len(args.config) == len(args.output_dir) == len(args.checkpoint)
     config_list = [config.clone() for _ in args.output_dir]
     for i, config in enumerate(config_list):
+        config.merge_from_file(args.config[i])
         config.merge_from_list(["output_dir", args.output_dir[i]])
         config.merge_from_list(["checkpoint", os.path.join(args.output_dir[i], args.checkpoint[i])])
+        config.merge_from_list(args.options)
+        if options:
+            config.merge_from_list(options)
         update_config(config)
         config.freeze()
 
