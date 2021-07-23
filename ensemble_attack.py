@@ -54,8 +54,8 @@ def load_config(options=None):
     config_list = [config.clone() for _ in args.output_dir]
     for i, config in enumerate(config_list):
         config.merge_from_file(args.config[i])
-        config.merge_from_list(["output_dir", args.output_dir[i]])
-        config.merge_from_list(["checkpoint", os.path.join(args.output_dir[i], args.checkpoint[i])])
+        config.merge_from_list(["test.output_dir", args.output_dir[i]])
+        config.merge_from_list(["test.checkpoint", os.path.join(args.output_dir[i], args.checkpoint[i])])
         config.merge_from_list(args.options)
         if options:
             config.merge_from_list(options)
