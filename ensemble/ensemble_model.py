@@ -16,7 +16,7 @@ class EnsembleModel(nn.Module):
         output_list = torch.stack(output_list)
         output_mean = torch.mean(output_list, dim=0)
         output_variance = torch.var(output_list, dim=0)
-        print(torch.max(output_variance, dim=1))
+        # print(torch.max(output_variance, dim=1))
 
         # calculate output_variance after sigmoid
         variance_thresh = 0.03
