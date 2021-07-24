@@ -142,8 +142,7 @@ class CWInfAttack(nn.Module):
             adv_images = self.w_to_adv_images(w)
             output = self.model(self.Normalize(adv_images))
             # print("is_fake", output[0][-1])
-            print("output max: ", torch.max(output, dim=1).indices)
-            print("target max: ", torch.max(target, dim=1).indices)
+            print("target output", output[0][target_c])
 
             f_value = self.c * self.get_f_value(output, target)
             delta = self.w_to_delta(w, images)
