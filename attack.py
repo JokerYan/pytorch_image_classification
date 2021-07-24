@@ -30,7 +30,7 @@ from pytorch_image_classification.utils import (
 from utils.debug_tools import clear_debug_image, save_image_stack
 
 # attack parameters temporarily attached here
-c = 1
+c = 5
 lr = 0.05
 momentum = 0.9
 steps = 200
