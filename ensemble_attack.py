@@ -133,7 +133,8 @@ class CWInfAttack(nn.Module):
         # random target
         # labels is of shape [1], only a number from 0 to 9
         target_c = torch.remainder(torch.randint(0, 9, labels.shape).to(self.device) + labels, 10)
-        target = torch.zeros(1, self.config.dataset.n_classes + 1).to(self.device)  # the extra logit for is_fake
+        # target = torch.zeros(1, self.config.dataset.n_classes + 1).to(self.device)  # the extra logit for is_fake
+        target = torch.zeros(1, self.config.dataset.n_classes).to(self.device)  # the extra logit for is_fake
         target[:, target_c] = 1
 
         finish_step = self.steps
