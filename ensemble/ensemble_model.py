@@ -30,8 +30,8 @@ class EnsembleModel(nn.Module):
         output_fake = torch.max(output_variance_sigmoid, dim=1, keepdim=True).values
         output_final = torch.cat([output_c, output_fake], 1)
 
-        return output_final
-        # return output_mean[0]
+        # return output_final
+        return output_mean
 
 
 
