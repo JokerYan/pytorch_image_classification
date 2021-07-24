@@ -25,7 +25,7 @@ class EnsembleModel(nn.Module):
         # variance_temp = 1
         # output_variance_sigmoid = torch.sigmoid((output_variance - variance_thresh) / variance_temp)
         output_variance_sigmoid = output_variance
-        print(output_variance_sigmoid)
+        print(output_mean, output_variance)
 
         # concatenate output with one extra fake output
         # if the original output is of dim n, the new output is of dim (n + 1)
