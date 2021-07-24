@@ -37,7 +37,7 @@ class EnsembleModel(nn.Module):
         # print("output_final", output_final)
 
         # return output_final
-        return output_mean
+        return output_mean[0]
 
 
 
