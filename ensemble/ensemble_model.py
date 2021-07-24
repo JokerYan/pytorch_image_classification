@@ -26,6 +26,7 @@ class EnsembleModel(nn.Module):
         # if the original output is of dim n, the new output is of dim (n + 1)
         output_c = torch.min(output_mean, (1 - output_variance_sigmoid))
         output_fake = torch.max(output_variance_sigmoid, dim=1, keepdim=True).values
+        print(output_fake)
         output_final = torch.cat([output_c, output_fake], 1)
 
         return output_final
