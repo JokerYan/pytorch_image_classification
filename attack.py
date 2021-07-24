@@ -30,8 +30,9 @@ from pytorch_image_classification.utils import (
 from utils.debug_tools import clear_debug_image, save_image_stack
 
 # attack parameters temporarily attached here
-c = 5
-lr = 0.05
+c = 1
+# lr = 0.01
+lr = 1
 momentum = 0.9
 steps = 200
 batch_size = 1
@@ -127,7 +128,7 @@ class CWInfAttack(nn.Module):
         for step in range(self.steps):
             adv_images = self.w_to_adv_images(w)
             output = self.model(self.Normalize(adv_images))
-            # output = torch.softmax(output, dim=1)
+            output = torch.softmax(output, dim=1)
             print(float(output[0][target_c]))
 
             f_value = self.c * self.get_f_value(output, target)
