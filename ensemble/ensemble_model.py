@@ -11,7 +11,7 @@ class EnsembleModel(nn.Module):
         output_list = []
         for model in self.model_list:
             output = model(x)
-            # output = torch.softmax(output, dim=1)
+            output = torch.softmax(output, dim=1)
             output_list.append(output)
         output_list = torch.stack(output_list)
         output_mean = torch.mean(output_list, dim=0)
