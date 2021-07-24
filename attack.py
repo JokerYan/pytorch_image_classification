@@ -127,8 +127,8 @@ class CWInfAttack(nn.Module):
         for step in range(self.steps):
             adv_images = self.w_to_adv_images(w)
             output = self.model(self.Normalize(adv_images))
-            output = torch.softmax(output, dim=1)
-            print(float(output[0][target_c]))
+            output = torch.softmax(output, dim=1) * 100
+            # print(float(output[0][target_c]))
 
             f_value = self.c * self.get_f_value(output, target)
             delta = self.w_to_delta(w, images)
