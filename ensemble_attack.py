@@ -14,7 +14,7 @@ import tqdm
 
 from fvcore.common.checkpoint import Checkpointer
 
-from ensemble.ensemble_model import EnsembleModel
+from custom_models.ensemble_model import EnsembleModel
 from pytorch_image_classification import (
     apply_data_parallel_wrapper,
     create_dataloader,
