@@ -126,6 +126,7 @@ class CWInfAttack(nn.Module):
         target = torch.zeros(1, self.config.dataset.n_classes).to(self.device)
         target[:, target_c] = 1
 
+        self.smooth_model(self.Normalize(images))
         for step in range(self.steps):
             adv_images = self.w_to_adv_images(w)
             output = self.model(self.Normalize(adv_images))
@@ -147,8 +148,8 @@ class CWInfAttack(nn.Module):
             optimizer.step()
 
             # print out results
-            # acc = cal_accuracy(output, target)
-            acc = cal_accuracy(self.smooth_model(self.Normalize(adv_images)), target)
+            acc = cal_accuracy(output, target)
+            # acc = cal_accuracy(self.smooth_model(self.Normalize(adv_images)), target)
             avg_delta = torch.mean(delta)
             # print('Acc: {}\tDelta: {}'.format(acc, avg_delta))
             if acc > best_acc:
