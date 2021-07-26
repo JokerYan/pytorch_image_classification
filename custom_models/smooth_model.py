@@ -14,6 +14,7 @@ class SmoothModel(nn.Module):
 
     def forward(self, x):
         base_output = self.base_model(x)
+        x.retain_grad()
         torch.max(base_output).backward()
         print(x.requires_grad)
         print(x.grad.data)
