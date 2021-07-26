@@ -13,12 +13,12 @@ class SmoothModel(nn.Module):
         self.sample_size = sample_size
 
     def forward(self, x):
+        input_clone = x.clone().detach()
+        input_clone.requires_grad = True
         base_output = self.base_model(x)
-        x.retain_grad()
         torch.max(base_output).backward()
-        print(x.requires_grad)
-        print(x.grad.data)
-        x.grad.data.zero_()
+        print(input_clone.requires_grad)
+        print(input_clone.grad.data)
 
         input_dummy = torch.ones(x.shape)
         output_list = []
