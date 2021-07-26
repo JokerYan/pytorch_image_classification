@@ -13,7 +13,6 @@ class SmoothModel(nn.Module):
         self.sample_size = sample_size
 
     def forward(self, x):
-        x.requires_grad = True
         base_output = self.base_model(x)
         torch.max(base_output).backward()
         print(x.grad.data)
