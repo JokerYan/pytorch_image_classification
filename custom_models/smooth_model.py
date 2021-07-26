@@ -13,7 +13,11 @@ class SmoothModel(nn.Module):
         self.sample_size = sample_size
 
     def forward(self, x):
+        x.requires_grad = True
         base_output = self.base_model(x)
+        torch.max(base_output).backward()
+        print(x.grad.data)
+
         input_dummy = torch.ones(x.shape)
         output_list = []
         for i in range(self.sample_size):
@@ -21,4 +25,4 @@ class SmoothModel(nn.Module):
             gaussian_input = x + gaussian_noise
             gaussian_output = self.base_model(gaussian_input)
             output_list.append(gaussian_output)
-        return torch.median(torch.stack(output_list), dim=0).values
+        return torch.mean(torch.stack(output_list), dim=0)
