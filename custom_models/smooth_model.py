@@ -35,5 +35,5 @@ class SmoothModel(nn.Module):
             gaussian_output = self.base_model(gaussian_input)
             output_list.append(gaussian_output)
             output_c_list.append(int(torch.max(gaussian_output, dim=1).indices))
-            print(output_c_list)
+        print(output_c_list)
         return torch.mean(torch.stack(output_list), dim=0)
