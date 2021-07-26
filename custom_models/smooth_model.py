@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 class SmoothModel(nn.Module):
-    def __init__(self, base_model, mean=0, std=0.1, sample_size=100):
+    def __init__(self, base_model, mean=0, std=0.05, sample_size=100):
         super(SmoothModel, self).__init__()
         self.base_model = base_model
         self.mean = mean

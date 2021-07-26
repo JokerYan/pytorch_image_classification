@@ -13,6 +13,7 @@ import tqdm
 
 from fvcore.common.checkpoint import Checkpointer
 
+from custom_models.smooth_model import SmoothModel
 from pytorch_image_classification import (
     apply_data_parallel_wrapper,
     create_dataloader,
@@ -250,6 +251,7 @@ def main():
     test_loader = create_dataloader(config, is_train=False)
     _, test_loss = create_loss(config)
 
+    model = SmoothModel(model)
     attack(config, model, test_loader, test_loss, logger)
 
 
