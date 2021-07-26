@@ -18,6 +18,7 @@ class SmoothModel(nn.Module):
         torch.max(base_output).backward()
         print(x.requires_grad)
         print(x.grad.data)
+        x.grad.data.zero_()
 
         input_dummy = torch.ones(x.shape)
         output_list = []
