@@ -21,12 +21,14 @@ class SmoothModel(nn.Module):
         grad_data = input_clone.grad.data
         grad_data -= grad_data.min(1, keepdim=True).values
         grad_data /= grad_data.max(1, keepdim=True).values
-        print(grad_data)
 
         input_dummy = torch.ones(x.shape)
         output_list = []
         for i in range(self.sample_size):
             gaussian_noise = torch.normal(self.mean * input_dummy, self.std * input_dummy).cuda()
+
+            gaussian_noise = gaussian_noise * grad_data
+
             gaussian_input = x + gaussian_noise
             gaussian_output = self.base_model(gaussian_input)
             output_list.append(gaussian_output)
