@@ -21,4 +21,4 @@ class SmoothModel(nn.Module):
             gaussian_input = x + gaussian_noise
             gaussian_output = self.base_model(gaussian_input)
             output_list.append(gaussian_output)
-        return torch.median(torch.stack(output_list), dim=0)
+        return torch.median(torch.stack(output_list), dim=0).values
