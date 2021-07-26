@@ -71,6 +71,7 @@ class CWInfAttack(nn.Module):
         super(CWInfAttack, self).__init__()
 
         self.model = model
+        self.smooth_model = SmoothModel(model)
         self.config = config
         self.mean, self.std = _get_dataset_stats(config)
         self.c = c
@@ -146,7 +147,8 @@ class CWInfAttack(nn.Module):
             optimizer.step()
 
             # print out results
-            acc = cal_accuracy(output, target)
+            # acc = cal_accuracy(output, target)
+            acc = cal_accuracy(self.smooth_model(self.Normalize(adv_images)), target)
             avg_delta = torch.mean(delta)
             # print('Acc: {}\tDelta: {}'.format(acc, avg_delta))
             if acc > best_acc:
@@ -251,7 +253,6 @@ def main():
     test_loader = create_dataloader(config, is_train=False)
     _, test_loss = create_loss(config)
 
-    model = SmoothModel(model)
     attack(config, model, test_loader, test_loss, logger)
 
 
