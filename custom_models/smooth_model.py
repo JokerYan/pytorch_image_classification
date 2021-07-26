@@ -16,12 +16,9 @@ class SmoothModel(nn.Module):
         base_output = self.base_model(x)
         input_dummy = torch.ones(x.shape)
         output_list = []
-        clear_debug_image()
         for i in range(self.sample_size):
             gaussian_noise = torch.normal(self.mean * input_dummy, self.std * input_dummy).cuda()
             gaussian_input = x + gaussian_noise
-            save_image_stack(gaussian_input, "gaussian_input_{}".format(i), normalized=True)
-            save_image_stack(x, "normal_input_{}".format(i), normalized=True)
             gaussian_output = self.base_model(gaussian_input)
             output_list.append(gaussian_output)
         return torch.mean(torch.stack(output_list), dim=0)
