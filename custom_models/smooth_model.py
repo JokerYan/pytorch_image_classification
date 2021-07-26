@@ -17,8 +17,11 @@ class SmoothModel(nn.Module):
         input_clone.requires_grad = True
         base_output = self.base_model(input_clone)
         torch.max(base_output).backward()
-        print(input_clone.requires_grad)
-        print(input_clone.grad.data)
+
+        grad_data = input_clone.grad.data
+        grad_data -= grad_data.min(1, keepdim=True).values
+        grad_data /= grad_data.max(1, keepdim=True).values
+        print(grad_data)
 
         input_dummy = torch.ones(x.shape)
         output_list = []
