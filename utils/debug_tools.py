@@ -15,8 +15,8 @@ def save_image(image, name, normalized=False, debug_dir=default_debug_dir):
         image = image.detach().cpu().numpy()
         image = image.transpose((1, 2, 0))
     if normalized:
-        mean = np.asarray([0.485, 0.456, 0.406])
-        std = np.asarray([0.229, 0.224, 0.225])
+        mean = np.array([0.4914, 0.4822, 0.4465])
+        std = np.array([0.2470, 0.2435, 0.2616])
         image = np.multiply(image, std)
         mean = np.multiply(np.ones_like(image), mean)
         image = image + mean
