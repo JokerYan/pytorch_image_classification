@@ -35,6 +35,10 @@ class SmoothModel(nn.Module):
             gaussian_input = x + gaussian_noise
             # gaussian_input = x * linear_noise
             gaussian_output = self.base_model(gaussian_input)
+            # min max norm to 0 ~ 1
+            gaussian_output -= gaussian_output.min(1, keepdim=True).values
+            gaussian_output /= gaussian_output.max(1, keepdim=True).values
+
             output_list.append(gaussian_output)
             output_c_list.append(int(torch.max(gaussian_output, dim=1).indices))
         print(output_c_list)
