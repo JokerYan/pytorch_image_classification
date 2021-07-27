@@ -32,6 +32,7 @@ class SmoothModel(nn.Module):
             # linear_noise = torch.randn_like(x).cuda() * 0.1 + 0.9
 
             # gaussian_noise = gaussian_noise * grad_data
+            gaussian_noise = gaussian_noise * self.get_focus_filter()
 
             gaussian_input = x + gaussian_noise
             # gaussian_input = x * linear_noise
@@ -44,3 +45,19 @@ class SmoothModel(nn.Module):
             output_c_list.append(int(torch.max(gaussian_output, dim=1).indices))
         print(output_c_list)
         return torch.mean(torch.stack(output_list), dim=0)
+
+    def get_focus_filter(self, shape):
+        max_distance = 20
+        # shape: Batch x Channel x H x W
+        focus_filter = torch.ones(shape)
+        h_center = torch.randint(0, shape[2], (1, ))
+        w_center = torch.randint(0, shape[3], (1, ))
+
+        for b in range(focus_filter.shape[0]):
+            for c in range(focus_filter.shape[1]):
+                for h in range(focus_filter.shape[2]):
+                    for w in range(focus_filter.shape[3]):
+                        distance_to_center = torch.sqrt(torch.square(h - h_center) + torch.square(w - w_center))
+                        focus_filter[b][c][h][w] = distance_to_center / max_distance
+        return focus_filter
+
