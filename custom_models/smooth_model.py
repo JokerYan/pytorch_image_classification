@@ -32,7 +32,7 @@ class SmoothModel(nn.Module):
             # linear_noise = torch.randn_like(x).cuda() * 0.1 + 0.9
 
             # gaussian_noise = gaussian_noise * grad_data
-            gaussian_noise = gaussian_noise * self.get_focus_filter()
+            gaussian_noise = gaussian_noise * self.get_focus_filter(x.shape)
 
             gaussian_input = x + gaussian_noise
             # gaussian_input = x * linear_noise
