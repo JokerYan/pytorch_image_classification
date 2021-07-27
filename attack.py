@@ -129,7 +129,6 @@ class CWInfAttack(nn.Module):
         target = torch.zeros(1, self.config.dataset.n_classes).to(self.device)
         target[:, target_c] = 1
 
-        clear_debug_image()
         for step in range(self.steps):
             adv_images = self.w_to_adv_images(w)
             # output = self.model(self.Normalize(adv_images))
