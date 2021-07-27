@@ -116,6 +116,7 @@ class CWInfAttack(nn.Module):
         best_adv_images = images.clone().detach()
         best_acc = 0
         best_delta = 1
+        best_max_delta = None
 
         # optimizer = torch.optim.SGD([w], lr=self.lr, momentum=self.momentum)
         optimizer = torch.optim.Adam([w], lr=self.lr)
@@ -152,18 +153,21 @@ class CWInfAttack(nn.Module):
             acc = cal_accuracy(output, target)
             # acc = cal_accuracy(self.smooth_model(self.Normalize(adv_images)), target)
             avg_delta = torch.mean(delta)
+            max_delta = torch.max(delta)
             # print('Acc: {}\tDelta: {}'.format(acc, avg_delta))
             if acc > best_acc:
                 best_adv_images = adv_images
                 best_acc = acc
                 best_delta = avg_delta
+                best_max_delta = max_delta
             if acc == best_acc and avg_delta < best_delta:
                 best_adv_images = adv_images
                 best_acc = acc
                 best_delta = avg_delta
+                best_max_delta = max_delta
             if acc == 1:
                 break
-        print('Batch finished: Acc: {}\tDelta: {}\tStep: {}'.format(best_acc, best_delta, step))
+        print('Batch finished: Acc: {}\tDelta: {}\tMax Delta: {}\tStep: {}'.format(best_acc, best_delta, best_max_delta, step))
         print('>>>>>')
         # pickle.dump(best_adv_images, open('adv_images_batch.pkl', 'wb'))
         if self.counter == 0:
