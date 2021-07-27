@@ -135,7 +135,9 @@ class CWInfAttack(nn.Module):
             output = self.smooth_model(self.Normalize(adv_images))
             # output = torch.softmax(output, dim=1)
             # print(float(output[0][target_c]))
-            self.smooth_model(self.Normalize(adv_images))
+            with torch.no_grad:
+                val_smooth_output = self.smooth_model(self.Normalize(adv_images))
+                print("val smooth output: ", int(torch.argmax(val_smooth_output)))
 
             f_value = self.c * self.get_f_value(output, target)
             delta = self.w_to_delta(w, images)
