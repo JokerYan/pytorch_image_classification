@@ -28,11 +28,12 @@ class SmoothModel(nn.Module):
         output_c_list = []
         for i in range(self.sample_size):
             # gaussian_noise = torch.normal(self.mean * input_dummy, self.std * input_dummy).cuda()
-            gaussian_noise = torch.randn_like(x).cuda() * 0.4 - 0.2
+            linear_noise = torch.randn_like(x).cuda() * 0.1 + 0.9
 
             # gaussian_noise = gaussian_noise * grad_data
 
-            gaussian_input = x + gaussian_noise
+            # gaussian_input = x + gaussian_noise
+            gaussian_input = x * linear_noise
             gaussian_output = self.base_model(gaussian_input)
             output_list.append(gaussian_output)
             output_c_list.append(int(torch.max(gaussian_output, dim=1).indices))
