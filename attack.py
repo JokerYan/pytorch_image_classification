@@ -130,8 +130,8 @@ class CWInfAttack(nn.Module):
 
         for step in range(self.steps):
             adv_images = self.w_to_adv_images(w)
-            output = self.model(self.Normalize(adv_images))
-            # output = self.smooth_model(self.Normalize(adv_images))
+            # output = self.model(self.Normalize(adv_images))
+            output = self.smooth_model(self.Normalize(adv_images))
             # output = torch.softmax(output, dim=1)
             # print(float(output[0][target_c]))
             self.smooth_model(self.Normalize(adv_images))
