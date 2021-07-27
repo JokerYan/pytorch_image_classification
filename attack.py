@@ -124,6 +124,7 @@ class CWInfAttack(nn.Module):
         # random target
         # labels is of shape [1], only a number from 0 to 9
         target_c = torch.remainder(torch.randint(0, 9, labels.shape).to(self.device) + labels, 10)
+        print("target_c: {}".format(target_c))
         target = torch.zeros(1, self.config.dataset.n_classes).to(self.device)
         target[:, target_c] = 1
 
