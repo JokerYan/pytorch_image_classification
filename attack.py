@@ -129,6 +129,7 @@ class CWInfAttack(nn.Module):
         target = torch.zeros(1, self.config.dataset.n_classes).to(self.device)
         target[:, target_c] = 1
 
+        clear_debug_image()
         for step in range(self.steps):
             adv_images = self.w_to_adv_images(w)
             # output = self.model(self.Normalize(adv_images))
@@ -178,10 +179,10 @@ class CWInfAttack(nn.Module):
             self.counter += 1
             save_image_stack(images, 'original input {} {}'.format(self.counter, best_delta))
             save_image_stack(best_adv_images, 'adversarial input {} {}'.format(self.counter, best_delta))
-            # delta_image = torch.abs(best_adv_images - images)
+            delta_image = torch.abs(best_adv_images - images)
             # print(torch.max(delta_image))
-            # adjusted_delta = delta_image / torch.max(delta_image)
-            # save_image_stack(adjusted_delta, 'adjusted delta')
+            adjusted_delta = delta_image / torch.max(delta_image)
+            save_image_stack(adjusted_delta, 'adjusted delta')
 
         return best_adv_images, best_acc, best_delta
 
