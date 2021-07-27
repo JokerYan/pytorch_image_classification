@@ -59,5 +59,5 @@ class SmoothModel(nn.Module):
                     for w in range(focus_filter.shape[3]):
                         distance_to_center = torch.sqrt(torch.square(h - h_center) + torch.square(w - w_center))
                         focus_filter[b][c][h][w] = distance_to_center / max_distance
-        return focus_filter
+        return focus_filter.cuda()
 
