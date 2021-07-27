@@ -5,7 +5,7 @@ from utils.debug_tools import save_image_stack, clear_debug_image
 
 
 class SmoothModel(nn.Module):
-    def __init__(self, base_model, mean=0, std=0.1, sample_size=20):
+    def __init__(self, base_model, mean=0, std=0.3, sample_size=20):
         super(SmoothModel, self).__init__()
         self.base_model = base_model
         self.mean = mean
@@ -27,13 +27,13 @@ class SmoothModel(nn.Module):
         output_list = []
         output_c_list = []
         for i in range(self.sample_size):
-            # gaussian_noise = torch.normal(self.mean * input_dummy, self.std * input_dummy).cuda()
-            linear_noise = torch.randn_like(x).cuda() * 0.1 + 0.9
+            gaussian_noise = torch.normal(self.mean * input_dummy, self.std * input_dummy).cuda()
+            # linear_noise = torch.randn_like(x).cuda() * 0.1 + 0.9
 
             # gaussian_noise = gaussian_noise * grad_data
 
-            # gaussian_input = x + gaussian_noise
-            gaussian_input = x * linear_noise
+            gaussian_input = x + gaussian_noise
+            # gaussian_input = x * linear_noise
             gaussian_output = self.base_model(gaussian_input)
             output_list.append(gaussian_output)
             output_c_list.append(int(torch.max(gaussian_output, dim=1).indices))
