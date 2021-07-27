@@ -28,11 +28,11 @@ class SmoothModel(nn.Module):
         output_c_list = []
         for i in range(self.sample_size):
             gaussian_noise = torch.normal(self.mean * input_dummy, self.std * input_dummy).cuda()
-            save_image_stack(torch.mean(torch.abs(gaussian_noise), dim=1, keepdim=True), "gaussian_noise_{}".format(i))
             # linear_noise = torch.randn_like(x).cuda() * 0.1 + 0.9
 
             # gaussian_noise = gaussian_noise * grad_data
             gaussian_noise = gaussian_noise * self.get_focus_filter(x.shape)
+            save_image_stack(torch.mean(torch.abs(gaussian_noise), dim=1, keepdim=True), "gaussian_noise_{}".format(i))
 
             gaussian_input = x + gaussian_noise
             # gaussian_input = x * linear_noise
@@ -59,7 +59,7 @@ class SmoothModel(nn.Module):
                 for h in range(focus_filter.shape[2]):
                     for w in range(focus_filter.shape[3]):
                         distance_to_center = torch.sqrt(torch.square(h - h_center) + torch.square(w - w_center))
-                        focus_filter[b][c][h][w] = distance_to_center / max_distance
+                        focus_filter[b][c][h][w] = 1 - distance_to_center / max_distance
         save_image_stack(focus_filter, "focus_filter")
         return focus_filter.cuda()
 
