@@ -52,6 +52,7 @@ class SmoothModel(nn.Module):
         focus_filter = torch.ones(shape)
         h_center = torch.randint(0, shape[2], (1, ))
         w_center = torch.randint(0, shape[3], (1, ))
+        print(shape, h_center, w_center)
 
         for b in range(focus_filter.shape[0]):
             for c in range(focus_filter.shape[1]):
