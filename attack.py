@@ -155,9 +155,9 @@ class CWInfAttack(nn.Module):
             loss.sum().backward()
             optimizer.step()
 
-            # adv_filter = torch.abs(delta.clone().detach())
-            # adv_filter /= torch.max(adv_filter)
-            # self.smooth_model.set_adv_filter(adv_filter)
+            adv_filter = torch.abs(delta.clone().detach())
+            adv_filter /= torch.max(adv_filter)
+            self.smooth_model.set_adv_filter(adv_filter)
 
             # print out results
             acc = cal_accuracy(output, target)

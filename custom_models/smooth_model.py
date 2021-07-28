@@ -14,10 +14,9 @@ class SmoothModel(nn.Module):
         self.adv_filter = None
 
     def forward(self, x):
-        input_clone = x.clone().detach()
-        input_clone.requires_grad = True
-        base_output = self.base_model(input_clone)
-
+        # input_clone = x.clone().detach()
+        # input_clone.requires_grad = True
+        # base_output = self.base_model(input_clone)
         # torch.max(base_output).backward()
         # grad_data = input_clone.grad.data
         # grad_data = torch.abs(grad_data)
@@ -33,9 +32,9 @@ class SmoothModel(nn.Module):
             # linear_noise = torch.randn_like(x).cuda() * 0.1 + 0.9
 
             # gaussian_noise = gaussian_noise * grad_data
-            gaussian_noise = gaussian_noise * self.get_focus_filter(x.shape)
-            # if self.adv_filter is not None:
-            #     gaussian_noise = gaussian_noise * self.adv_filter
+            # gaussian_noise = gaussian_noise * self.get_focus_filter(x.shape)
+            if self.adv_filter is not None:
+                gaussian_noise = -0.1 * self.adv_filter
             save_image_stack(torch.mean(torch.abs(gaussian_noise), dim=1, keepdim=True), "gaussian_noise_{}".format(i))
 
             gaussian_input = x + gaussian_noise
