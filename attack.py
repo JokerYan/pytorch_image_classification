@@ -158,7 +158,7 @@ class CWInfAttack(nn.Module):
             # acc = cal_accuracy(self.smooth_model(self.Normalize(adv_images)), target)
             avg_delta = torch.mean(delta)
             max_delta = torch.max(delta)
-            # print('Acc: {}\tDelta: {}'.format(acc, avg_delta))
+            print('Acc: {}\tDelta: {}'.format(acc, avg_delta))
             if acc > best_acc:
                 best_adv_images = adv_images
                 best_acc = acc
