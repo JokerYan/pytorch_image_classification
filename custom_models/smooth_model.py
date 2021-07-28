@@ -34,7 +34,7 @@ class SmoothModel(nn.Module):
             # gaussian_noise = gaussian_noise * grad_data
             # gaussian_noise = gaussian_noise * self.get_focus_filter(x.shape)
             if self.adv_filter is not None:
-                gaussian_noise = -0.1 * self.adv_filter
+                gaussian_noise = -0.3 * self.adv_filter
             save_image_stack(torch.mean(torch.abs(gaussian_noise), dim=1, keepdim=True), "gaussian_noise_{}".format(i))
 
             gaussian_input = x + gaussian_noise
