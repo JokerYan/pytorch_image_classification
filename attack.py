@@ -129,6 +129,8 @@ class CWInfAttack(nn.Module):
         target = torch.zeros(1, self.config.dataset.n_classes).to(self.device)
         target[:, target_c] = 1
 
+        if self.counter == 0:
+            clear_debug_image()
         for step in range(self.steps):
             adv_images = self.w_to_adv_images(w)
             # output = self.model(self.Normalize(adv_images))
@@ -174,8 +176,6 @@ class CWInfAttack(nn.Module):
         print('Batch finished: Acc: {}\tDelta: {}\tMax Delta: {}\tStep: {}'.format(best_acc, best_delta, best_max_delta, step))
         print('>>>>>')
         # pickle.dump(best_adv_images, open('adv_images_batch.pkl', 'wb'))
-        if self.counter == 0:
-            clear_debug_image()
         if self.counter < 10 and best_acc == 1:
             self.counter += 1
             save_image_stack(images, 'original input {} {}'.format(self.counter, best_delta))
@@ -224,7 +224,7 @@ def attack(config, model, test_loader, loss_func, logger):
     adv_image_list = []
 
     for i, (data, targets) in enumerate(test_loader):
-        if i == 100:
+        if i == 3:
             break
         data = data.to(device)
         targets = targets.to(device)
