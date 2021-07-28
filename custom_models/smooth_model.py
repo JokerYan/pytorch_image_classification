@@ -11,6 +11,7 @@ class SmoothModel(nn.Module):
         self.mean = mean
         self.std = std
         self.sample_size = sample_size
+        self.adv_filter = None
 
     def forward(self, x):
         input_clone = x.clone().detach()
@@ -33,6 +34,8 @@ class SmoothModel(nn.Module):
 
             # gaussian_noise = gaussian_noise * grad_data
             gaussian_noise = gaussian_noise * self.get_focus_filter(x.shape)
+            if self.adv_filter is not None:
+                gaussian_noise = gaussian_noise * self.adv_filter
             save_image_stack(torch.mean(torch.abs(gaussian_noise), dim=1, keepdim=True), "gaussian_noise_{}".format(i))
 
             gaussian_input = x + gaussian_noise
@@ -67,4 +70,7 @@ class SmoothModel(nn.Module):
                         focus_filter[b][c][h][w] = 1 - min(1, distance_to_center / max_distance)
         save_image_stack(focus_filter, "focus_filter")
         return focus_filter.cuda()
+
+    def set_adv_filter(self, adv_filter):
+        self.adv_filter = adv_filter
 

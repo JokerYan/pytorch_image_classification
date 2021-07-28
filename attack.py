@@ -155,6 +155,10 @@ class CWInfAttack(nn.Module):
             loss.sum().backward()
             optimizer.step()
 
+            adv_filter = torch.abs(delta.clone())
+            adv_filter /= torch.max(adv_filter)
+            self.smooth_model.set_adv_filter(adv_filter)
+
             # print out results
             acc = cal_accuracy(output, target)
             # acc = cal_accuracy(self.smooth_model(self.Normalize(adv_images)), target)
@@ -182,7 +186,7 @@ class CWInfAttack(nn.Module):
             save_image_stack(best_adv_images, 'adversarial input {} {}'.format(self.counter, best_delta))
             delta_image = torch.abs(best_adv_images - images)
             save_image_stack(delta_image, 'delta {} {}'.format(self.counter, best_delta))
-            print(torch.max(delta_image))
+            # print(torch.max(delta_image))
             adjusted_delta = delta_image / torch.max(delta_image)
             adjusted_delta = torch.mean(adjusted_delta, dim=1, keepdim=True)
             save_image_stack(adjusted_delta, 'adjusted delta {} {}'.format(self.counter, best_delta))
