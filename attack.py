@@ -133,8 +133,8 @@ class CWInfAttack(nn.Module):
             clear_debug_image()
         for step in range(self.steps):
             adv_images = self.w_to_adv_images(w)
-            # output = self.model(self.Normalize(adv_images))
-            output = self.smooth_model(self.Normalize(adv_images))
+            output = self.model(self.Normalize(adv_images))
+            # output = self.smooth_model(self.Normalize(adv_images))
             # output = torch.softmax(output, dim=1)
             # print(float(output[0][target_c]))
             with torch.no_grad():
@@ -155,9 +155,9 @@ class CWInfAttack(nn.Module):
             loss.sum().backward()
             optimizer.step()
 
-            adv_filter = torch.abs(delta.clone().detach())
-            adv_filter /= torch.max(adv_filter)
-            self.smooth_model.set_adv_filter(adv_filter)
+            # adv_filter = torch.abs(delta.clone().detach())
+            # adv_filter /= torch.max(adv_filter)
+            # self.smooth_model.set_adv_filter(adv_filter)
 
             # print out results
             acc = cal_accuracy(output, target)
