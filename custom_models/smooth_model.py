@@ -5,7 +5,7 @@ from utils.debug_tools import save_image_stack, clear_debug_image
 
 
 class SmoothModel(nn.Module):
-    def __init__(self, base_model, mean=0, std=0.3, sample_size=20):
+    def __init__(self, base_model, mean=0, std=0.5, sample_size=20):
         super(SmoothModel, self).__init__()
         self.base_model = base_model
         self.mean = mean
@@ -49,7 +49,7 @@ class SmoothModel(nn.Module):
         return torch.mean(torch.stack(output_list), dim=0)
 
     def get_focus_filter(self, shape):
-        max_distance = 8
+        max_distance = 16
         # shape: Batch x Channel x H x W
         focus_filter = torch.ones(shape)
         h_center = torch.randint(0, shape[2], (1, ))
