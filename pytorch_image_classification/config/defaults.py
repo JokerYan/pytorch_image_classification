@@ -242,6 +242,7 @@ config.test.dataloader.num_workers = 2
 config.test.dataloader.pin_memory = False
 
 # custom part
+config.custom_model = ConfigNode()
 config.custom_model.name = ''
 
 def get_default_config():
