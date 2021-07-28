@@ -4,6 +4,8 @@ import argparse
 import pathlib
 import time
 
+from pytorch_image_classification.models import create_custom_model
+
 try:
     import apex
 except ImportError:
@@ -364,7 +366,10 @@ def main():
 
     train_loader, val_loader = create_dataloader(config, is_train=True)
 
-    model = create_model(config)
+    if config.custom_model.name:
+        model = create_custom_model(config)
+    else:
+        model = create_model(config)
     macs, n_params = count_op(config, model)
     logger.info(f'MACs   : {macs}')
     logger.info(f'#params: {n_params}')

@@ -16,6 +16,17 @@ def create_model(config: yacs.config.CfgNode) -> nn.Module:
     return model
 
 
+def create_custom_model(config: yacs.config.CfgNode) -> nn.Module:
+    base_model = create_model(config)
+    module = importlib.import_module(
+        'custom_models'
+        f'.{config.custom_model.name}')
+    custom_model = getattr(module, 'Network')(config, base_model)
+    device = torch.device(config.device)
+    custom_model.to(device)
+    return custom_model
+
+
 def apply_data_parallel_wrapper(config: yacs.config.CfgNode,
                                 model: nn.Module) -> nn.Module:
     local_rank = config.train.dist.local_rank
