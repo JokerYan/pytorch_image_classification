@@ -22,6 +22,7 @@ from pytorch_image_classification import (
     get_default_config,
     update_config,
 )
+from pytorch_image_classification.models import create_custom_model
 from pytorch_image_classification.transforms import _get_dataset_stats
 from pytorch_image_classification.utils import (
     AverageMeter,
@@ -255,7 +256,10 @@ def main():
 
     logger = create_logger(name=__name__, distributed_rank=get_rank())
 
-    model = create_model(config)
+    if config.custom_model.name:
+        model = create_custom_model(config)
+    else:
+        model = create_model(config)
     model = apply_data_parallel_wrapper(config, model)
     # checkpointer = Checkpointer(model,
     #                             checkpoint_dir=output_dir,
