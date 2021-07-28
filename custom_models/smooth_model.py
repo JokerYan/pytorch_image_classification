@@ -5,7 +5,7 @@ from utils.debug_tools import save_image_stack, clear_debug_image
 
 
 class SmoothModel(nn.Module):
-    def __init__(self, base_model, mean=0, std=0.1, sample_size=20):
+    def __init__(self, base_model, mean=0, std=0.3, sample_size=20):
         super(SmoothModel, self).__init__()
         self.base_model = base_model
         self.mean = mean
@@ -35,6 +35,8 @@ class SmoothModel(nn.Module):
             save_image_stack(torch.mean(torch.abs(gaussian_noise), dim=1, keepdim=True), "gaussian_noise_{}".format(i))
 
             gaussian_input = x + gaussian_noise
+            save_image_stack(gaussian_input, "gaussian_input_{}".format(i))
+
             # gaussian_input = x * linear_noise
             gaussian_output = self.base_model(gaussian_input)
             # min max norm to 0 ~ 1
@@ -47,7 +49,7 @@ class SmoothModel(nn.Module):
         return torch.mean(torch.stack(output_list), dim=0)
 
     def get_focus_filter(self, shape):
-        max_distance = 10
+        max_distance = 8
         # shape: Batch x Channel x H x W
         focus_filter = torch.ones(shape)
         h_center = torch.randint(0, shape[2], (1, ))
