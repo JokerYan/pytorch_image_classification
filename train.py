@@ -156,7 +156,6 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
 
             # loss = loss_func(output_chunk, target_chunk)
             loss = loss_func(output_chunk, target_chunk, data_chunk)
-            optimizer.zero_grad()
             losses.append(loss)
             if config.device != 'cpu' and config.train.use_apex:
                 with apex.amp.scale_loss(loss, optimizer) as scaled_loss:
