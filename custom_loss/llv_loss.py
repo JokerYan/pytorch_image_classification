@@ -14,9 +14,9 @@ class LocalLipschitzValueLoss:
         # max_output.backward(retain_graph=False, create_graph=True)
         # input_grad = model_input.grad.data
         input_grad = torch.autograd.grad(max_output, model_input)[0]
-        input_grad_norm = torch.norm(input_grad, p=2)  # l2 norm
-        print("base_loss: {}\tgrad_norm: {}".format(base_loss, torch.max(input_grad)))
-        input_grad_norm.requires_grad = True
-        debug_grad = torch.autograd.grad(input_grad_norm, model_input)[0]
+        # input_grad_norm = torch.norm(input_grad, p=2)  # l2 norm
+        # print("base_loss: {}\tgrad_norm: {}".format(base_loss, torch.max(input_grad)))
+        # input_grad_norm.requires_grad = True
+        # debug_grad = torch.autograd.grad(input_grad_norm, model_input)[0]
 
         return base_loss
