@@ -4,6 +4,7 @@ import argparse
 import pathlib
 import time
 
+from custom_loss.llv_loss import LocalLipschitzValueLoss
 from pytorch_image_classification.models import create_custom_model
 
 try:
@@ -140,6 +141,7 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
         outputs = []
         losses = []
         for data_chunk, target_chunk in zip(data_chunks, target_chunks):
+            data_chunk.requires_grad = True
             if config.augmentation.use_dual_cutout:
                 w = data_chunk.size(3) // 2
                 data1 = data_chunk[:, :, :, :w]
@@ -152,7 +154,8 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
                 output_chunk = model(data_chunk)
             outputs.append(output_chunk)
 
-            loss = loss_func(output_chunk, target_chunk)
+            # loss = loss_func(output_chunk, target_chunk)
+            loss = loss_func(output_chunk, target_chunk, data_chunk)
             losses.append(loss)
             if config.device != 'cpu' and config.train.use_apex:
                 with apex.amp.scale_loss(loss, optimizer) as scaled_loss:
@@ -416,6 +419,7 @@ def main():
         tensorboard_writer2 = DummyWriter()
 
     train_loss, val_loss = create_loss(config)
+    train_loss = LocalLipschitzValueLoss(train_loss)
 
     if (config.train.val_period > 0 and start_epoch == 0
             and config.train.val_first):
