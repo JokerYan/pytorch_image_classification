@@ -138,9 +138,9 @@ class CWInfAttack(nn.Module):
             # output = self.smooth_model(self.Normalize(adv_images))
             # output = torch.softmax(output, dim=1)
             # print(float(output[0][target_c]))
-            with torch.no_grad():
-                val_smooth_output = self.smooth_model(self.Normalize(adv_images))
-                print("val smooth output: ", int(torch.argmax(val_smooth_output)))
+            # with torch.no_grad():
+            #     val_smooth_output = self.smooth_model(self.Normalize(adv_images))
+            #     print("val smooth output: ", int(torch.argmax(val_smooth_output)))
 
             f_value = self.c * self.get_f_value(output, target)
             delta = self.w_to_delta(w, images)
@@ -230,7 +230,7 @@ def attack(config, model, test_loader, loss_func, logger):
     adv_image_list = []
 
     for i, (data, targets) in enumerate(test_loader):
-        if i == 3:
+        if i == 100:
             break
         data = data.to(device)
         targets = targets.to(device)
