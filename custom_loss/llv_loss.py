@@ -23,7 +23,7 @@ class LocalLipschitzValueLoss:
         else:
             print(msg)
 
-        total_loss = base_loss + self.norm_ratio * input_grad_norm
+        total_loss = base_loss + 0 * self.norm_ratio * input_grad_norm
 
-        return base_loss
-        # return total_loss
+        # return base_loss
+        return total_loss
