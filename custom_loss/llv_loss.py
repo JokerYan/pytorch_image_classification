@@ -11,8 +11,10 @@ class LocalLipschitzValueLoss:
 
         assert model_input.requires_grad
         max_output = torch.sum(torch.max(output, dim=1).values)
-        max_output.backward(retain_graph=False, create_graph=True)
-        input_grad = model_input.grad.data
+        # max_output.backward(retain_graph=False, create_graph=True)
+        # input_grad = model_input.grad.data
+        input_grad = torch.autograd.grad(max_output, model_input)
+        print(input_grad)
         input_grad_norm = torch.norm(input_grad, p=2)  # l2 norm
         print("base_loss: {}\tgrad_norm: {}".format(base_loss, torch.max(input_grad)))
         input_grad_norm.requires_grad = True
