@@ -419,7 +419,7 @@ def main():
         tensorboard_writer2 = DummyWriter()
 
     train_loss, val_loss = create_loss(config)
-    train_loss = LocalLipschitzValueLoss(train_loss)
+    # train_loss = LocalLipschitzValueLoss(train_loss)
 
     if (config.train.val_period > 0 and start_epoch == 0
             and config.train.val_first):
