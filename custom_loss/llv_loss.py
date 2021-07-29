@@ -25,4 +25,5 @@ class LocalLipschitzValueLoss:
 
         total_loss = base_loss + self.norm_ratio * input_grad_norm
 
-        return total_loss
+        return base_loss
+        # return total_loss
