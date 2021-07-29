@@ -5,7 +5,7 @@ import torch.nn as nn
 class LocalLipschitzValueLoss:
     def __init__(self, base_loss_func, logger=None):
         self.base_loss_func = base_loss_func
-        self.norm_ratio = 1
+        self.norm_ratio = 0.1
         self.logger = logger
 
     def __call__(self, output, target, model_input):
@@ -23,7 +23,7 @@ class LocalLipschitzValueLoss:
         else:
             print(msg)
 
-        total_loss = base_loss + 0 * self.norm_ratio * input_grad_norm
+        total_loss = base_loss + self.norm_ratio * input_grad_norm
 
         # return base_loss
         return total_loss
