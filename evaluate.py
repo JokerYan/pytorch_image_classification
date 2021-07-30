@@ -54,7 +54,8 @@ def evaluate(config, model, test_loader, loss_func, logger):
     pred_prob_all = []
     pred_label_all = []
     LLVLoss = LocalLipschitzValueLoss(loss_func)
-    with torch.no_grad():
+    # with torch.no_grad():
+    with True:
         for data, targets in tqdm.tqdm(test_loader):
             data = data.to(device)
             data.requires_grad = True
