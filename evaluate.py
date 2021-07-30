@@ -11,6 +11,7 @@ import tqdm
 
 from fvcore.common.checkpoint import Checkpointer
 
+from custom_loss.llv_loss import LocalLipschitzValueLoss
 from pytorch_image_classification import (
     apply_data_parallel_wrapper,
     create_dataloader,
@@ -52,6 +53,7 @@ def evaluate(config, model, test_loader, loss_func, logger):
     pred_raw_all = []
     pred_prob_all = []
     pred_label_all = []
+    LLVLoss = LocalLipschitzValueLoss(loss_func)
     with torch.no_grad():
         for data, targets in tqdm.tqdm(test_loader):
             data = data.to(device)
@@ -59,6 +61,7 @@ def evaluate(config, model, test_loader, loss_func, logger):
 
             outputs = model(data)
             loss = loss_func(outputs, targets)
+            LLVLoss(outputs, targets, data)
 
             pred_raw_all.append(outputs.cpu().numpy())
             pred_prob_all.append(F.softmax(outputs, dim=1).cpu().numpy())
