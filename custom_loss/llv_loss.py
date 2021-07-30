@@ -8,6 +8,8 @@ class LocalLipschitzValueLoss:
         self.norm_ratio = 0.1
         self.logger = logger
 
+        self.llv_thresh = 0.1
+
     def __call__(self, output, target, model_input):
         base_loss = self.base_loss_func(output, target)
 
@@ -20,7 +22,7 @@ class LocalLipschitzValueLoss:
         else:
             print(msg)
 
-        total_loss = base_loss + self.norm_ratio * input_grad_norm
+        total_loss = base_loss + self.norm_ratio * torch.relu(input_grad_norm - self.llv_thresh)
 
         # return base_loss
         return total_loss
@@ -31,7 +33,6 @@ class LocalLipschitzValueLoss:
         max_output = torch.sum(torch.max(output, dim=1).values)
         input_grad = torch.autograd.grad(max_output, model_input, retain_graph=is_train, create_graph=is_train)[0]
         input_grad_norm = torch.norm(input_grad, p=2)  # l2 norm
-        print(input_grad_norm)
 
         return input_grad_norm
 
