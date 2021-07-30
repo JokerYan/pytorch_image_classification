@@ -48,12 +48,12 @@ def evaluate(config, model, test_loader, loss_func, logger):
 
     loss_meter = AverageMeter()
     correct_meter = AverageMeter()
+    input_grad_norm_meter = AverageMeter()
     start = time.time()
 
     pred_raw_all = []
     pred_prob_all = []
     pred_label_all = []
-    LLVLoss = LocalLipschitzValueLoss(loss_func)
     # with torch.no_grad():
     if True:
         for data, targets in tqdm.tqdm(test_loader):
@@ -63,7 +63,7 @@ def evaluate(config, model, test_loader, loss_func, logger):
 
             outputs = model(data)
             loss = loss_func(outputs, targets)
-            LLVLoss(outputs, targets, data)
+            input_grad_norm = LocalLipschitzValueLoss.get_input_grad_norm(outputs, data)
             outputs = outputs.detach()
 
             pred_raw_all.append(outputs.cpu().numpy())
@@ -78,12 +78,13 @@ def evaluate(config, model, test_loader, loss_func, logger):
 
             loss_meter.update(loss_, num)
             correct_meter.update(correct_, 1)
+            input_grad_norm_meter.update(input_grad_norm, num)
 
         accuracy = correct_meter.sum / len(test_loader.dataset)
 
         elapsed = time.time() - start
         logger.info(f'Elapsed {elapsed:.2f}')
-        logger.info(f'Loss {loss_meter.avg:.4f} Accuracy {accuracy:.4f}')
+        logger.info(f'Loss {loss_meter.avg:.4f} Accuracy {accuracy:.4f} GradNorm {input_grad_norm_meter.avg:.8f}')
 
     preds = np.concatenate(pred_raw_all)
     probs = np.concatenate(pred_prob_all)

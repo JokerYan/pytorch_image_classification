@@ -11,13 +11,10 @@ class LocalLipschitzValueLoss:
     def __call__(self, output, target, model_input):
         base_loss = self.base_loss_func(output, target)
 
-        assert model_input.requires_grad
-        max_output = torch.sum(torch.max(output, dim=1).values)
         # max_output.backward(retain_graph=False, create_graph=True)
         # input_grad = model_input.grad.data
-        input_grad = torch.autograd.grad(max_output, model_input, retain_graph=True, create_graph=True)[0]
-        input_grad_norm = torch.norm(input_grad, p=2)  # l2 norm
-        msg = "base_loss: {}\tgrad_norm: {}".format(base_loss, torch.max(input_grad))
+        input_grad_norm = self.get_input_grad_norm(output, model_input)
+        msg = "base_loss: {}\tgrad_norm: {}".format(base_loss, torch.max(input_grad_norm))
         if self.logger is not None:
             self.logger.info(msg)
         else:
@@ -27,3 +24,13 @@ class LocalLipschitzValueLoss:
 
         # return base_loss
         return total_loss
+
+    @staticmethod
+    def get_input_grad_norm(output, model_input):
+        assert model_input.requires_grad
+        max_output = torch.sum(torch.max(output, dim=1).values)
+        input_grad = torch.autograd.grad(max_output, model_input, retain_graph=True, create_graph=True)[0]
+        input_grad_norm = torch.norm(input_grad, p=2)  # l2 norm
+
+        return input_grad_norm
+
