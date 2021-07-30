@@ -57,6 +57,7 @@ def evaluate(config, model, test_loader, loss_func, logger):
     with torch.no_grad():
         for data, targets in tqdm.tqdm(test_loader):
             data = data.to(device)
+            data.requires_grad = True
             targets = targets.to(device)
 
             outputs = model(data)
