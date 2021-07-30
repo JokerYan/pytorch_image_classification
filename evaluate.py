@@ -64,6 +64,7 @@ def evaluate(config, model, test_loader, loss_func, logger):
             outputs = model(data)
             loss = loss_func(outputs, targets)
             LLVLoss(outputs, targets, data)
+            outputs = outputs.detach()
 
             pred_raw_all.append(outputs.cpu().numpy())
             pred_prob_all.append(F.softmax(outputs, dim=1).cpu().numpy())
