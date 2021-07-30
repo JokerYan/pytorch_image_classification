@@ -63,7 +63,7 @@ def evaluate(config, model, test_loader, loss_func, logger):
 
             outputs = model(data)
             loss = loss_func(outputs, targets)
-            input_grad_norm = LocalLipschitzValueLoss.get_input_grad_norm(outputs, data, retain_graph=False)
+            input_grad_norm = LocalLipschitzValueLoss.get_input_grad_norm(outputs, data, is_train=False)
             outputs = outputs.detach()
 
             pred_raw_all.append(outputs.cpu().numpy())
