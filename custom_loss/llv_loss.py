@@ -8,7 +8,7 @@ class LocalLipschitzValueLoss:
         self.norm_ratio = 0.1
         self.logger = logger
 
-        self.llv_thresh = 0.1
+        self.llv_thresh = 1.5
 
     def __call__(self, output, target, model_input):
         base_loss = self.base_loss_func(output, target)
