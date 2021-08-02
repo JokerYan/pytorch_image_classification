@@ -16,13 +16,13 @@ class LocalLipschitzValueLoss:
         # max_output.backward(retain_graph=False, create_graph=True)
         # input_grad = model_input.grad.data
         input_grad_norm = self.get_input_grad_norm(output, model_input)
-        msg = "base_loss: {}\tgrad_norm: {}".format(base_loss, torch.max(input_grad_norm))
+        total_loss = base_loss + self.norm_ratio * torch.relu(input_grad_norm - self.llv_thresh)
+
+        msg = "base_loss: {}\tgrad_norm: {}\ttotal_loss: {}".format(base_loss, input_grad_norm, total_loss)
         if self.logger is not None:
             self.logger.info(msg)
         else:
             print(msg)
-
-        total_loss = base_loss + self.norm_ratio * torch.relu(input_grad_norm - self.llv_thresh)
 
         # return base_loss
         return total_loss
