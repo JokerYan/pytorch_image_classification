@@ -35,12 +35,11 @@ class LocalLipschitzValueLoss:
         second_max_output = torch.topk(output, k=2, dim=1).values[:, 1]
         min_output = torch.min(output, dim=1).values
         output_gap = (max_output - second_max_output) / (max_output - min_output)
-        output_gap_sum = torch.sum(output_gap)
-        print(output_gap_sum)
+        output_gap_mean = torch.mean(output_gap)
 
         # max_output = torch.sum(torch.max(output, dim=1).values)
 
-        input_grad = torch.autograd.grad(output_gap_sum, model_input, retain_graph=is_train, create_graph=is_train)[0]
+        input_grad = torch.autograd.grad(output_gap_mean, model_input, retain_graph=is_train, create_graph=is_train)[0]
         input_grad_norm = torch.norm(input_grad, p=2)  # l2 norm
 
         return input_grad_norm
