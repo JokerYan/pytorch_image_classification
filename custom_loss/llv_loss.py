@@ -18,7 +18,7 @@ class LocalLipschitzValueLoss:
         input_grad_norm = self.get_input_grad_norm(output, model_input)
         total_loss = base_loss + self.norm_ratio * torch.relu(input_grad_norm - self.llv_thresh)
 
-        msg = "base_loss: {}\tgrad_norm: {}\ttotal_loss: {}".format(base_loss, input_grad_norm, total_loss)
+        msg = f'base_loss: {base_loss:.4f}\tgrad_norm: {input_grad_norm:.6f}\ttotal_loss: {total_loss:.6f}'
         if self.logger is not None:
             self.logger.info(msg)
         else:
