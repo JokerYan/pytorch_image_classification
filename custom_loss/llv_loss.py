@@ -34,10 +34,12 @@ class LocalLipschitzValueLoss:
         max_output = torch.max(output, dim=1).values
         second_max_output = torch.topk(output, k=2, dim=1).values[:, 1]
         min_output = torch.min(output, dim=1).values
+        output_gap = (max_output - second_max_output) / (max_output - min_output)
         print(max_output)
         print(second_max_output)
         print(min_output)
         print(output)
+        print(output_gap)
 
         max_output = torch.sum(torch.max(output, dim=1).values)
 
