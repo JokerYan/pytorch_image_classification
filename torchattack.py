@@ -68,6 +68,7 @@ def attack(config, model, test_loader, loss_func, logger):
     # attack_model = CWInfAttack(model, config, c, lr, momentum, steps).cuda()
     attack_model = torchattacks.CW(model, c=1, steps=200, lr=0.1)
 
+    success_meter = AverageMeter()
     accuracy_meter = AverageMeter()
     delta_meter = AverageMeter()
     adv_image_list = []
@@ -83,12 +84,14 @@ def attack(config, model, test_loader, loss_func, logger):
 
         with torch.no_grad():
             adv_output = model(adv_images)
-            acc = cal_accuracy(adv_output, attack_target)
-            print("Batch {} attack success: {}".format(i, acc))
+            success = cal_accuracy(adv_output, attack_target)
+            acc = cal_accuracy(adv_output, labels)
+            print("Batch {} attack success: {}\tdefense acc: {}".format(i, success, acc))
+            success_meter.update(success, 1)
             accuracy_meter.update(acc, 1)
         adv_image_list.append(adv_images)
 
-    logger.info(f'Accuracy {accuracy_meter.avg:.4f} Delta {delta_meter.avg:.4f}')
+    logger.info(f'Success: {success_meter.avg:.4f} Accuracy {accuracy_meter.avg:.4f} Delta {delta_meter.avg:.4f}')
 
     return adv_image_list, accuracy_meter.avg, delta_meter.avg
 
