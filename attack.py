@@ -148,13 +148,6 @@ class CWInfAttack(nn.Module):
             delta = self.w_to_delta(w, images)
             distance = self.inf_distance(delta, tau)
 
-            # print(self.get_f_value(output, target), self.get_f_value_torchattaks(output, target))
-
-            # l2
-            MSELoss = nn.MSELoss(reduction='none')
-            Flatten = nn.Flatten()
-            distance = MSELoss(Flatten(adv_images), Flatten(images)).sum(dim=1).sum()
-
             loss = f_value + distance
 
             # update tau
@@ -208,17 +201,17 @@ class CWInfAttack(nn.Module):
 
         return best_adv_images, best_success, best_accuracy, best_delta
 
-    @staticmethod
-    def get_f_value(outputs, target):
-        src_p = torch.max(outputs * (1 - target))
-        target_p = torch.min(outputs * target)
-        print(src_p, target_p, target, outputs)
-        f6 = torch.relu(src_p - target_p)
-        return f6
+    # @staticmethod
+    # def get_f_value(outputs, target):
+    #     src_p = torch.max(outputs * (1 - target))
+    #     target_p = torch.min(outputs * target)
+    #     print(src_p, target_p, target, outputs)
+    #     f6 = torch.relu(src_p - target_p)
+    #     return f6
 
     # f-function in the paper
     @staticmethod
-    def get_f_value_torchattaks(outputs, labels):
+    def get_f_value(outputs, labels):
         labels = int(torch.argmax(labels))
         one_hot_labels = torch.eye(len(outputs[0]))[labels].cuda()
 
