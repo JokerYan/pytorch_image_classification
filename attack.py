@@ -169,7 +169,7 @@ class CWInfAttack(nn.Module):
             avg_delta = torch.mean(delta)
             max_delta = torch.max(delta)
             print('Success: {}\tAcc: {}\tDelta: {}'.format(success, accuracy, avg_delta))
-            print("output: {} label: {} target: {}".format(torch.argmax(output), labels, torch.argmax(target)))
+            # print("output: {} label: {} target: {}".format(torch.argmax(output), int(labels), torch.argmax(target)))
             if success > best_success:
                 best_adv_images = adv_images
                 best_success = success
