@@ -150,7 +150,7 @@ class CWInfAttack(nn.Module):
             distance = self.inf_distance(delta, tau)
 
             # l2
-            distance = nn.MSELoss(Flatten(adv_images), Flatten(images)).sum(dim=1).sum()
+            distance = nn.MSELoss(reduction='none')(Flatten(adv_images), Flatten(images)).sum(dim=1).sum()
 
             loss = f_value + distance
 
