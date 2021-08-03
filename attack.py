@@ -216,6 +216,7 @@ class CWInfAttack(nn.Module):
     # f-function in the paper
     @staticmethod
     def get_f_value(outputs, labels):
+        labels = int(torch.argmax(labels))
         one_hot_labels = torch.eye(len(outputs[0]))[labels].cuda()
 
         i, _ = torch.max((1-one_hot_labels)*outputs, dim=1)
