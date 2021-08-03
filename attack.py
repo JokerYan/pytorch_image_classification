@@ -206,12 +206,22 @@ class CWInfAttack(nn.Module):
 
         return best_adv_images, best_success, best_accuracy, best_delta
 
+    # @staticmethod
+    # def get_f_value(outputs, target):
+    #     src_p = torch.max(outputs * (1 - target))
+    #     target_p = torch.max(outputs * target)
+    #     f6 = torch.relu(src_p - target_p)
+    #     return f6
+
+    # f-function in the paper
     @staticmethod
-    def get_f_value(outputs, target):
-        src_p = torch.max(outputs * (1 - target))
-        target_p = torch.max(outputs * target)
-        f6 = torch.relu(src_p - target_p)
-        return f6
+    def get_f_value(outputs, labels):
+        one_hot_labels = torch.eye(len(outputs[0]))[labels].cuda()
+
+        i, _ = torch.max((1-one_hot_labels)*outputs, dim=1)
+        j = torch.masked_select(outputs, one_hot_labels.bool())
+
+        return torch.clamp((i-j), min=0)
 
     @staticmethod
     def inf_distance(delta, tau):
