@@ -81,7 +81,13 @@ def attack(config, model, test_loader, loss_func, logger):
     success_meter = AverageMeter()
     accuracy_meter = AverageMeter()
     delta_meter = AverageMeter()
+
     adv_image_list = []
+
+    mean, std = _get_dataset_stats(config)
+    Normalize = torch_transforms.Normalize(
+        mean, std
+    )
 
     for i, (data, labels) in enumerate(test_loader):
         if i == 100:
@@ -93,10 +99,10 @@ def attack(config, model, test_loader, loss_func, logger):
         attack_model.set_mode_targeted_by_function(random_target_function)
 
         with torch.no_grad():
-            adv_output = model(adv_images)
+            adv_output = model(Normalize(adv_images))
             normal_output = model(data)
             # success = cal_accuracy(adv_output, labels)
-            print(int(torch.argmax(normal_output)), int(torch.argmax(adv_output)), int(labels))
+            print("output: {} labels: {}".format(int(torch.argmax(adv_output)), int(labels),))
             acc = cal_accuracy(adv_output, labels)
             print("Batch {} attack success: {}\tdefense acc: {}".format(i, "N.A.", acc))
             # success_meter.update(success, 1)
