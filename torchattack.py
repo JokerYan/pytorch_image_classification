@@ -69,6 +69,7 @@ def random_target_function(images, labels):
 
 def attack(config, model, test_loader, loss_func, logger):
     device = torch.device(config.device)
+    print(torchattacks.__file__)
 
     model.eval()
     # attack_model = CWInfAttack(model, config, c, lr, momentum, steps).cuda()
