@@ -30,6 +30,7 @@ from pytorch_image_classification.utils import (
     create_logger,
     get_rank,
 )
+from custom_torchattacks.custom_cw import CustomCW
 from utils.debug_tools import clear_debug_image, save_image_stack
 
 
@@ -73,7 +74,8 @@ def attack(config, model, test_loader, loss_func, logger):
 
     model.eval()
     # attack_model = CWInfAttack(model, config, c, lr, momentum, steps).cuda()
-    attack_model = torchattacks.CW(model, c=1, steps=1000, lr=0.01)
+    # attack_model = torchattacks.CW(model, c=1, steps=1000, lr=0.01)
+    attack_model = CustomCW(model, c=1, steps=1000, lr=0.01)
 
     success_meter = AverageMeter()
     accuracy_meter = AverageMeter()
