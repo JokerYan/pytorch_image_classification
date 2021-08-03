@@ -30,10 +30,13 @@ class LocalLipschitzValueLoss:
     @staticmethod
     def get_input_grad_norm(output, model_input, is_train=True):
         assert model_input.requires_grad
-        max_output = torch.sum(torch.max(output, dim=1).values)
-        second_max_output = torch.sum(torch.topk(output, k=2, dim=1).values[1])
-        min_output = torch.sum(torch.min(output, dim=1).values)
+
+        max_output = torch.max(output, dim=1).values
+        second_max_output = torch.topk(output, k=2, dim=1).values[1]
+        min_output = torch.min(output, dim=1).values
         print(max_output, second_max_output, min_output, output)
+
+        max_output = torch.sum(torch.max(output, dim=1).values)
 
         input_grad = torch.autograd.grad(max_output, model_input, retain_graph=is_train, create_graph=is_train)[0]
         input_grad_norm = torch.norm(input_grad, p=2)  # l2 norm
