@@ -235,7 +235,7 @@ def attack(config, model, test_loader, loss_func, logger):
         data = data.to(device)
         targets = targets.to(device)
 
-        adv_images, acc, delta = attack_model(data, targets)
+        adv_images, acc, delta = attack_model(data, targets)  # acc here is attack success rate
         accuracy_meter.update(acc, 1)
         delta_meter.update(delta, 1)
         adv_image_list.append(adv_images)

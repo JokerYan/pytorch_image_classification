@@ -83,6 +83,7 @@ def attack(config, model, test_loader, loss_func, logger):
         with torch.no_grad():
             adv_output = model(adv_images)
             acc = cal_accuracy(adv_output, targets)
+            print("Batch {} attack success: {}".format(i, 1 - acc))
             accuracy_meter.update(acc, 1)
         adv_image_list.append(adv_images)
 
