@@ -57,9 +57,10 @@ def load_config(options=None):
 
 def cal_accuracy(output, target):
     with torch.no_grad():
-        if torch.argmax(output) == torch.argmax(target):
-            return 1
-        return 0
+        if output.shape == target.shape:
+            return torch.argmax(output) == torch.argmax(target)
+        else:
+            return torch.argmax(output) == target
 
 
 class CWInfAttack(nn.Module):
@@ -168,7 +169,7 @@ class CWInfAttack(nn.Module):
             avg_delta = torch.mean(delta)
             max_delta = torch.max(delta)
             print('Success: {}\tAcc: {}\tDelta: {}'.format(success, accuracy, avg_delta))
-            print("output: {} label: {} target: {}".format(torch.argmax(output), torch.argmax(labels), torch.argmax(target)))
+            print("output: {} label: {} target: {}".format(torch.argmax(output), labels, torch.argmax(target)))
             if success > best_success:
                 best_adv_images = adv_images
                 best_success = success
@@ -235,13 +236,13 @@ def attack(config, model, test_loader, loss_func, logger):
     delta_meter = AverageMeter()
     adv_image_list = []
 
-    for i, (data, targets) in enumerate(test_loader):
+    for i, (data, labels) in enumerate(test_loader):
         if i == 100:
             break
         data = data.to(device)
-        targets = targets.to(device)
+        labels = labels.to(device)
 
-        adv_images, success, accuracy, delta = attack_model(data, targets)  # acc here is attack success rate
+        adv_images, success, accuracy, delta = attack_model(data, labels)  # acc here is attack success rate
         success_meter.update(success, 1)
         accuracy_meter.update(accuracy, 1)
         delta_meter.update(delta, 1)
