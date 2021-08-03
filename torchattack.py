@@ -61,6 +61,11 @@ def cal_accuracy(outputs, labels):
     return correct / total
 
 
+def random_target_function(images, labels):
+    attack_target = torch.remainder(torch.randint(1, 9, labels.shape).cuda() + labels, 10)
+    return attack_target
+
+
 def attack(config, model, test_loader, loss_func, logger):
     device = torch.device(config.device)
 
@@ -78,7 +83,6 @@ def attack(config, model, test_loader, loss_func, logger):
             break
         data = data.to(device)
         labels = labels.to(device)
-        attack_target = torch.remainder(torch.randint(1, 9, labels.shape).cuda() + labels, 10)
 
         adv_images = attack_model(data, attack_target)
 

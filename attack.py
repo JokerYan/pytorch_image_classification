@@ -115,7 +115,8 @@ class CWInfAttack(nn.Module):
         tau = 1
 
         best_adv_images = images.clone().detach()
-        best_acc = 0
+        best_success = 0
+        best_accuracy = 1
         best_delta = 1
         best_max_delta = None
 
@@ -161,27 +162,30 @@ class CWInfAttack(nn.Module):
             # self.smooth_model.set_adv_filter(adv_filter)
 
             # print out results
-            acc = cal_accuracy(output, target)
+            success = cal_accuracy(output, target)
+            accuracy = cal_accuracy(output, labels)
             # acc = cal_accuracy(self.smooth_model(self.Normalize(adv_images)), target)
             avg_delta = torch.mean(delta)
             max_delta = torch.max(delta)
-            print('Acc: {}\tDelta: {}'.format(acc, avg_delta))
-            if acc > best_acc:
+            print('Acc: {}\tDelta: {}'.format(success, avg_delta))
+            if success > best_success:
                 best_adv_images = adv_images
-                best_acc = acc
+                best_success = success
+                best_accuracy = accuracy
                 best_delta = avg_delta
                 best_max_delta = max_delta
-            if acc == best_acc and avg_delta < best_delta:
+            if success == best_success and avg_delta < best_delta:
                 best_adv_images = adv_images
-                best_acc = acc
+                best_success = success
+                best_accuracy = accuracy
                 best_delta = avg_delta
                 best_max_delta = max_delta
-            if acc == 1:
+            if success == 1:
                 break
-        print('Batch finished: Acc: {}\tDelta: {}\tMax Delta: {}\tStep: {}'.format(best_acc, best_delta, best_max_delta, step))
+        print('Batch finished: Success: {}\tAccuracy: {}\tDelta: {}\tStep: {}'.format(best_success, best_accuracy, best_delta, step))
         print('>>>>>')
         # pickle.dump(best_adv_images, open('adv_images_batch.pkl', 'wb'))
-        if self.counter < 10 and best_acc == 1:
+        if self.counter < 10 and best_success == 1:
             self.counter += 1
             save_image_stack(images, 'original input {} {}'.format(self.counter, best_delta))
             save_image_stack(best_adv_images, 'adversarial input {} {}'.format(self.counter, best_delta))
@@ -192,7 +196,7 @@ class CWInfAttack(nn.Module):
             adjusted_delta = torch.mean(adjusted_delta, dim=1, keepdim=True)
             save_image_stack(adjusted_delta, 'adjusted delta {} {}'.format(self.counter, best_delta))
 
-        return best_adv_images, best_acc, best_delta
+        return best_adv_images, best_success, best_accuracy, best_delta
 
     @staticmethod
     def get_f_value(outputs, target):
@@ -225,6 +229,7 @@ def attack(config, model, test_loader, loss_func, logger):
     model.eval()
     attack_model = CWInfAttack(model, config, c, lr, momentum, steps).cuda()
 
+    success_meter = AverageMeter()
     accuracy_meter = AverageMeter()
     delta_meter = AverageMeter()
     adv_image_list = []
@@ -235,14 +240,15 @@ def attack(config, model, test_loader, loss_func, logger):
         data = data.to(device)
         targets = targets.to(device)
 
-        adv_images, acc, delta = attack_model(data, targets)  # acc here is attack success rate
-        accuracy_meter.update(acc, 1)
+        adv_images, success, accuracy, delta = attack_model(data, targets)  # acc here is attack success rate
+        success_meter.update(success, 1)
+        accuracy_meter.update(accuracy, 1)
         delta_meter.update(delta, 1)
         adv_image_list.append(adv_images)
 
-    logger.info(f'Accuracy {accuracy_meter.avg:.4f} Delta {delta_meter.avg:.4f}')
+    logger.info(f'Success {success_meter.avg:.4f} Accuracy {accuracy_meter.avg:.4f} Delta {delta_meter.avg:.4f}')
 
-    return adv_image_list, accuracy_meter.avg, delta_meter.avg
+    return adv_image_list, success_meter.avg, delta_meter.avg
 
 
 def main():
