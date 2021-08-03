@@ -148,7 +148,7 @@ class CWInfAttack(nn.Module):
             delta = self.w_to_delta(w, images)
             distance = self.inf_distance(delta, tau)
 
-            print(self.get_f_value(output, target), self.get_f_value_torchattaks(output, target))
+            # print(self.get_f_value(output, target), self.get_f_value_torchattaks(output, target))
 
             # l2
             MSELoss = nn.MSELoss(reduction='none')
@@ -212,6 +212,7 @@ class CWInfAttack(nn.Module):
     def get_f_value(outputs, target):
         src_p = torch.max(outputs * (1 - target))
         target_p = torch.max(outputs * target)
+        print(src_p, target_p, target, outputs)
         f6 = torch.relu(src_p - target_p)
         return f6
 
