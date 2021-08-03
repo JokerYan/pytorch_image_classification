@@ -212,7 +212,7 @@ class CWInfAttack(nn.Module):
     def get_f_value(outputs, target):
         src_p = torch.max(outputs * (1 - target))
         target_p = torch.min(outputs * target)
-        # print(src_p, target_p, target, outputs)
+        print(src_p, target_p, target, outputs)
         f6 = torch.relu(src_p - target_p)
         return f6
 
