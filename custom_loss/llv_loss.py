@@ -32,7 +32,7 @@ class LocalLipschitzValueLoss:
         assert model_input.requires_grad
 
         max_output = torch.max(output, dim=1).values
-        second_max_output = torch.topk(output, k=2, dim=1).values[1]
+        second_max_output = torch.topk(output, k=2, dim=1).values[:, 1]
         min_output = torch.min(output, dim=1).values
         print(max_output)
         print(second_max_output)
