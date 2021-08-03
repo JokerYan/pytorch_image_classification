@@ -35,7 +35,7 @@ from utils.debug_tools import clear_debug_image, save_image_stack
 c = 10
 lr = 1
 momentum = 0.9
-steps = 200
+steps = 1000
 batch_size = 1
 
 
