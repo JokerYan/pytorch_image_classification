@@ -67,6 +67,7 @@ def attack(config, model, test_loader, loss_func, logger):
     model.eval()
     # attack_model = CWInfAttack(model, config, c, lr, momentum, steps).cuda()
     attack_model = torchattacks.CW(model, c=1, steps=1000, lr=0.1)
+    attack_model.set_mode_targeted_random(config.dataset.n_classes)
 
     accuracy_meter = AverageMeter()
     delta_meter = AverageMeter()
