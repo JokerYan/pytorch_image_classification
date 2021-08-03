@@ -67,24 +67,24 @@ def attack(config, model, test_loader, loss_func, logger):
     model.eval()
     # attack_model = CWInfAttack(model, config, c, lr, momentum, steps).cuda()
     attack_model = torchattacks.CW(model, c=1, steps=1000, lr=0.1)
-    attack_model.set_mode_targeted_random(config.dataset.n_classes)
 
     accuracy_meter = AverageMeter()
     delta_meter = AverageMeter()
     adv_image_list = []
 
-    for i, (data, targets) in enumerate(test_loader):
+    for i, (data, labels) in enumerate(test_loader):
         if i == 100:
             break
         data = data.to(device)
-        targets = targets.to(device)
+        labels = labels.to(device)
+        attack_target = torch.remainder(torch.randint(1, 9, labels.shape).cuda() + labels, 10)
 
-        adv_images = attack_model(data, targets)
+        adv_images = attack_model(data, attack_target)
 
         with torch.no_grad():
             adv_output = model(adv_images)
-            acc = cal_accuracy(adv_output, targets)
-            print("Batch {} attack success: {}".format(i, 1 - acc))
+            acc = cal_accuracy(adv_output, attack_target)
+            print("Batch {} attack success: {}".format(i, acc))
             accuracy_meter.update(acc, 1)
         adv_image_list.append(adv_images)
 
