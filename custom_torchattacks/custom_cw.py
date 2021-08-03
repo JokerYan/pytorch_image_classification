@@ -96,7 +96,7 @@ class CustomCW(CW):
             L2_loss = current_L2.sum()
 
             outputs = self.model(self.Normalize(adv_images))
-            print(outputs)
+            print(int(torch.argmax(outputs)), labels, target_labels)
             if self._targeted:
                 f_loss = self.f(outputs, target_labels).sum()
             else:
