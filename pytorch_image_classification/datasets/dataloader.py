@@ -69,7 +69,7 @@ def create_dataloader(
             batch_size=config.test.batch_size,
             num_workers=config.test.dataloader.num_workers,
             sampler=sampler,
-            shuffle=False,
+            shuffle=True,
             drop_last=False,
             pin_memory=config.test.dataloader.pin_memory)
         return test_loader
