@@ -58,9 +58,9 @@ def load_config(options=None):
 def cal_accuracy(output, target):
     with torch.no_grad():
         if output.shape == target.shape:
-            return torch.argmax(output) == torch.argmax(target)
+            return 1 if torch.argmax(output) == torch.argmax(target) else 0
         else:
-            return torch.argmax(output) == target
+            return 1 if torch.argmax(output) == target else 0
 
 
 class CWInfAttack(nn.Module):
