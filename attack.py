@@ -12,6 +12,7 @@ import torchvision.transforms as torch_transforms
 import tqdm
 
 from fvcore.common.checkpoint import Checkpointer
+from torch.nn import Flatten
 
 from custom_models.smooth_model import SmoothModel
 from pytorch_image_classification import (
@@ -147,6 +148,10 @@ class CWInfAttack(nn.Module):
             f_value = self.c * self.get_f_value(output, target)
             delta = self.w_to_delta(w, images)
             distance = self.inf_distance(delta, tau)
+
+            # l2
+            distance = nn.MSELoss(Flatten(adv_images), Flatten(images)).sum(dim=1).sum()
+
             loss = f_value + distance
 
             # update tau
