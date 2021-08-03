@@ -32,7 +32,7 @@ class CustomCW(CW):
     .. note:: Binary search for c is NOT IMPLEMENTED methods in the paper due to time consuming.
     """
     def __init__(self, config, model, c=1e-4, kappa=0, steps=1000, lr=0.01):
-        super(CustomCW, self).__init__()
+        super(CustomCW, self).__init__(model)
         self.c = c
         self.kappa = kappa
         self.steps = steps
