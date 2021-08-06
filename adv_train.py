@@ -16,6 +16,7 @@ import torch
 import torch.nn as nn
 import torch.distributed as dist
 import torchvision
+from torchattacks import PGD
 
 from fvcore.common.checkpoint import Checkpointer
 
@@ -291,6 +292,97 @@ def validate(epoch, config, model, loss_func, val_loader, logger,
                 tensorboard_writer.add_histogram(name, param, epoch)
 
 
+def pgd_validate(epoch, config, model, loss_func, val_loader, logger,
+             tensorboard_writer):
+    logger.info(f'PGD Val {epoch}')
+
+    device = torch.device(config.device)
+
+    model.eval()
+
+    loss_meter = AverageMeter()
+    acc1_meter = AverageMeter()
+    acc5_meter = AverageMeter()
+    start = time.time()
+
+    counter = 0
+    with torch.no_grad():
+        for step, (data, targets) in enumerate(val_loader):
+            counter += 1
+            if counter > 10:
+                break
+            if get_rank() == 0:
+                if config.tensorboard.val_images:
+                    if epoch == 0 and step == 0:
+                        image = torchvision.utils.make_grid(data,
+                                                            normalize=True,
+                                                            scale_each=True)
+                        tensorboard_writer.add_image('PGD Val/Image', image, epoch)
+
+            data = data.to(
+                device, non_blocking=config.validation.dataloader.non_blocking)
+            targets = targets.to(device)
+
+            # generate pgd adv inputs
+            pgd_model = PGD(model, eps=8/255, alpha=2/255, steps=5)
+            adv_inputs = pgd_model(data, targets)
+
+            outputs = model(adv_inputs)
+            loss = loss_func(outputs, targets)
+
+            acc1, acc5 = compute_accuracy(config,
+                                          outputs,
+                                          targets,
+                                          augmentation=False,
+                                          topk=(1, 5))
+
+            if config.train.distributed:
+                loss_all_reduce = dist.all_reduce(loss,
+                                                  op=dist.ReduceOp.SUM,
+                                                  async_op=True)
+                acc1_all_reduce = dist.all_reduce(acc1,
+                                                  op=dist.ReduceOp.SUM,
+                                                  async_op=True)
+                acc5_all_reduce = dist.all_reduce(acc5,
+                                                  op=dist.ReduceOp.SUM,
+                                                  async_op=True)
+                loss_all_reduce.wait()
+                acc1_all_reduce.wait()
+                acc5_all_reduce.wait()
+                loss.div_(dist.get_world_size())
+                acc1.div_(dist.get_world_size())
+                acc5.div_(dist.get_world_size())
+            loss = loss.item()
+            acc1 = acc1.item()
+            acc5 = acc5.item()
+
+            num = data.size(0)
+            loss_meter.update(loss, num)
+            acc1_meter.update(acc1, num)
+            acc5_meter.update(acc5, num)
+
+            if torch.cuda.is_available():
+                torch.cuda.synchronize()
+
+        logger.info(f'Epoch {epoch} '
+                    f'loss {loss_meter.avg:.4f} '
+                    f'acc@1 {acc1_meter.avg:.4f} '
+                    f'acc@5 {acc5_meter.avg:.4f}')
+
+        elapsed = time.time() - start
+        logger.info(f'Elapsed {elapsed:.2f}')
+
+    if get_rank() == 0:
+        if epoch > 0:
+            tensorboard_writer.add_scalar('PGD Val/Loss', loss_meter.avg, epoch)
+        tensorboard_writer.add_scalar('PGD Val/Acc1', acc1_meter.avg, epoch)
+        tensorboard_writer.add_scalar('PGD Val/Acc5', acc5_meter.avg, epoch)
+        tensorboard_writer.add_scalar('PGD Val/Time', elapsed, epoch)
+        if config.tensorboard.model_params:
+            for name, param in model.named_parameters():
+                tensorboard_writer.add_histogram(name, param, epoch)
+
+
 def main():
     global global_step
 
@@ -397,6 +489,8 @@ def main():
         if config.train.val_period > 0 and (epoch % config.train.val_period
                                             == 0):
             validate(epoch, config, model, val_loss, val_loader, logger,
+                     tensorboard_writer)
+            pgd_validate(epoch, config, model, val_loss, val_loader, logger,
                      tensorboard_writer)
 
         tensorboard_writer.flush()
