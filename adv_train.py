@@ -51,7 +51,7 @@ global_step = 0
 # adv training hyper-parameters
 epsilon = 8 / 255
 alpha = 10 / 255
-
+attack_target_class = 0
 
 
 def load_config():
@@ -127,10 +127,19 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
         noise_inputs.requires_grad = True
         noise_outputs = model(noise_inputs)
 
-        loss = loss_func(noise_outputs, targets)
-        input_grad = torch.autograd.grad(loss, noise_inputs)[0]
-        delta = delta + alpha * torch.sign(input_grad)
-        delta.clamp_(-epsilon, epsilon)
+        if attack_target_class is None:
+            # un-targeted attack
+            loss = loss_func(noise_outputs, targets)  # loss to be maximized
+            input_grad = torch.autograd.grad(loss, noise_inputs)[0]
+            delta = delta + alpha * torch.sign(input_grad)
+            delta.clamp_(-epsilon, epsilon)
+        else:
+            # targeted attack
+            attack_target = torch.ones_like(targets) * attack_target_class
+            loss = -1 * loss_func(noise_outputs, attack_target)  # loss to be minimized
+            input_grad = torch.autograd.grad(loss, noise_inputs)[0]
+            delta = delta + alpha * torch.sign(input_grad)
+            delta.clamp_(-epsilon, epsilon)
 
         optimizer.zero_grad()
         adv_inputs = data + delta
@@ -324,6 +333,9 @@ def pgd_validate(epoch, config, model, loss_func, val_loader, logger,
 
         # generate pgd adv inputs
         pgd_model = PGD(model, eps=8/255, alpha=2/255, steps=5)
+        if attack_target_class is not None:
+            pgd_model.set_mode_targeted_by_function(lambda images, labels: attack_target_class)  # targeted attack
+
         adv_inputs = pgd_model(data, targets)
 
         outputs = model(adv_inputs)
