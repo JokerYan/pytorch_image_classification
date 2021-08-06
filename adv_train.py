@@ -324,6 +324,7 @@ def pgd_validate(epoch, config, model, loss_func, val_loader, logger,
             targets = targets.to(device)
 
             # generate pgd adv inputs
+            data.requires_grad = True
             pgd_model = PGD(model, eps=8/255, alpha=2/255, steps=5)
             adv_inputs = pgd_model(data, targets)
 
