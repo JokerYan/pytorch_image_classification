@@ -11,7 +11,7 @@ from .transforms import (
     RandomHorizontalFlip,
     RandomResizeCrop,
     Resize,
-    ToTensor,
+    ToTensor, ToNumpy,
 )
 
 from .cutout import Cutout, DualCutout
@@ -68,6 +68,8 @@ def create_cifar_transform(config: yacs.config.CfgNode,
 
         if config.dataset.normalize:
             transforms.append(Normalize(mean, std))
+        else:
+            transforms.append(ToNumpy())
 
         if config.augmentation.use_cutout:
             transforms.append(Cutout(config))
@@ -78,10 +80,12 @@ def create_cifar_transform(config: yacs.config.CfgNode,
 
         transforms.append(ToTensor())
     else:
-        transforms = [
-            Normalize(mean, std),
-            ToTensor(),
-        ]
+        transforms = []
+        if config.dataset.normalize:
+            transforms.append(Normalize(mean, std))
+        else:
+            transforms.append(ToNumpy())
+        transforms.append(ToTensor())
 
     return torchvision.transforms.Compose(transforms)
 
@@ -100,6 +104,8 @@ def create_imagenet_transform(config: yacs.config.CfgNode,
 
         if config.dataset.normalize:
             transforms.append(Normalize(mean, std))
+        else:
+            transforms.append(ToNumpy())
 
         if config.augmentation.use_cutout:
             transforms.append(Cutout(config))
@@ -115,8 +121,11 @@ def create_imagenet_transform(config: yacs.config.CfgNode,
             transforms.append(Resize(config))
         if config.tta.use_center_crop:
             transforms.append(CenterCrop(config))
+        if config.dataset.normalize:
+            transforms.append(Normalize(mean, std))
+        else:
+            transforms.append(ToNumpy())
         transforms += [
-            Normalize(mean, std),
             ToTensor(),
         ]
 

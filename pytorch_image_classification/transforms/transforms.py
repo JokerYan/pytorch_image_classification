@@ -27,6 +27,11 @@ class Normalize:
         return image
 
 
+class ToNumpy:
+    def __call__(self, image: PIL.Image.Image) -> np.ndarray:
+        return np.asarray(image).astype(np.float32) / 255.
+
+
 class RandomCrop:
     def __init__(self, config: yacs.config.CfgNode):
         self.transform = torchvision.transforms.RandomCrop(
