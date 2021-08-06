@@ -334,7 +334,8 @@ def pgd_validate(epoch, config, model, loss_func, val_loader, logger,
         # generate pgd adv inputs
         pgd_model = PGD(model, eps=8/255, alpha=2/255, steps=5)
         if attack_target_class is not None:
-            pgd_model.set_mode_targeted_by_function(lambda images, labels: attack_target_class)  # targeted attack
+            attack_target_tensor = torch.ones_like(targets) * attack_target_class
+            pgd_model.set_mode_targeted_by_function(lambda images, labels: attack_target_tensor)  # targeted attack
 
         adv_inputs = pgd_model(data, targets)
 
