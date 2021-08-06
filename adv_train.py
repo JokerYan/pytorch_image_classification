@@ -306,72 +306,70 @@ def pgd_validate(epoch, config, model, loss_func, val_loader, logger,
     start = time.time()
 
     counter = 0
-    with torch.no_grad():
-        for step, (data, targets) in enumerate(val_loader):
-            counter += 1
-            if counter > 10:
-                break
-            if get_rank() == 0:
-                if config.tensorboard.val_images:
-                    if epoch == 0 and step == 0:
-                        image = torchvision.utils.make_grid(data,
-                                                            normalize=True,
-                                                            scale_each=True)
-                        tensorboard_writer.add_image('PGD Val/Image', image, epoch)
+    for step, (data, targets) in enumerate(val_loader):
+        counter += 1
+        if counter > 10:
+            break
+        if get_rank() == 0:
+            if config.tensorboard.val_images:
+                if epoch == 0 and step == 0:
+                    image = torchvision.utils.make_grid(data,
+                                                        normalize=True,
+                                                        scale_each=True)
+                    tensorboard_writer.add_image('PGD Val/Image', image, epoch)
 
-            data = data.to(
-                device, non_blocking=config.validation.dataloader.non_blocking)
-            targets = targets.to(device)
+        data = data.to(
+            device, non_blocking=config.validation.dataloader.non_blocking)
+        targets = targets.to(device)
 
-            # generate pgd adv inputs
-            data.requires_grad = True
-            pgd_model = PGD(model, eps=8/255, alpha=2/255, steps=5)
-            adv_inputs = pgd_model(data, targets)
+        # generate pgd adv inputs
+        pgd_model = PGD(model, eps=8/255, alpha=2/255, steps=5)
+        adv_inputs = pgd_model(data, targets)
 
-            outputs = model(adv_inputs)
-            loss = loss_func(outputs, targets)
+        outputs = model(adv_inputs)
+        loss = loss_func(outputs, targets)
 
-            acc1, acc5 = compute_accuracy(config,
-                                          outputs,
-                                          targets,
-                                          augmentation=False,
-                                          topk=(1, 5))
+        acc1, acc5 = compute_accuracy(config,
+                                      outputs,
+                                      targets,
+                                      augmentation=False,
+                                      topk=(1, 5))
 
-            if config.train.distributed:
-                loss_all_reduce = dist.all_reduce(loss,
-                                                  op=dist.ReduceOp.SUM,
-                                                  async_op=True)
-                acc1_all_reduce = dist.all_reduce(acc1,
-                                                  op=dist.ReduceOp.SUM,
-                                                  async_op=True)
-                acc5_all_reduce = dist.all_reduce(acc5,
-                                                  op=dist.ReduceOp.SUM,
-                                                  async_op=True)
-                loss_all_reduce.wait()
-                acc1_all_reduce.wait()
-                acc5_all_reduce.wait()
-                loss.div_(dist.get_world_size())
-                acc1.div_(dist.get_world_size())
-                acc5.div_(dist.get_world_size())
-            loss = loss.item()
-            acc1 = acc1.item()
-            acc5 = acc5.item()
+        if config.train.distributed:
+            loss_all_reduce = dist.all_reduce(loss,
+                                              op=dist.ReduceOp.SUM,
+                                              async_op=True)
+            acc1_all_reduce = dist.all_reduce(acc1,
+                                              op=dist.ReduceOp.SUM,
+                                              async_op=True)
+            acc5_all_reduce = dist.all_reduce(acc5,
+                                              op=dist.ReduceOp.SUM,
+                                              async_op=True)
+            loss_all_reduce.wait()
+            acc1_all_reduce.wait()
+            acc5_all_reduce.wait()
+            loss.div_(dist.get_world_size())
+            acc1.div_(dist.get_world_size())
+            acc5.div_(dist.get_world_size())
+        loss = loss.item()
+        acc1 = acc1.item()
+        acc5 = acc5.item()
 
-            num = data.size(0)
-            loss_meter.update(loss, num)
-            acc1_meter.update(acc1, num)
-            acc5_meter.update(acc5, num)
+        num = data.size(0)
+        loss_meter.update(loss, num)
+        acc1_meter.update(acc1, num)
+        acc5_meter.update(acc5, num)
 
-            if torch.cuda.is_available():
-                torch.cuda.synchronize()
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
 
-        logger.info(f'Epoch {epoch} '
-                    f'loss {loss_meter.avg:.4f} '
-                    f'acc@1 {acc1_meter.avg:.4f} '
-                    f'acc@5 {acc5_meter.avg:.4f}')
+    logger.info(f'Epoch {epoch} '
+                f'loss {loss_meter.avg:.4f} '
+                f'acc@1 {acc1_meter.avg:.4f} '
+                f'acc@5 {acc5_meter.avg:.4f}')
 
-        elapsed = time.time() - start
-        logger.info(f'Elapsed {elapsed:.2f}')
+    elapsed = time.time() - start
+    logger.info(f'Elapsed {elapsed:.2f}')
 
     if get_rank() == 0:
         if epoch > 0:
