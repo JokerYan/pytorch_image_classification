@@ -14,6 +14,7 @@ config.dataset.dataset_dir = ''
 config.dataset.image_size = 32
 config.dataset.n_channels = 3
 config.dataset.n_classes = 10
+config.dataset.normalize = True
 
 config.model = ConfigNode()
 # options: 'cifar', 'imagenet'

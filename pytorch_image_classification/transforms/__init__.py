@@ -66,7 +66,8 @@ def create_cifar_transform(config: yacs.config.CfgNode,
         if config.augmentation.use_random_horizontal_flip:
             transforms.append(RandomHorizontalFlip(config))
 
-        transforms.append(Normalize(mean, std))
+        if config.dataset.normalize:
+            transforms.append(Normalize(mean, std))
 
         if config.augmentation.use_cutout:
             transforms.append(Cutout(config))
@@ -97,7 +98,8 @@ def create_imagenet_transform(config: yacs.config.CfgNode,
         if config.augmentation.use_random_horizontal_flip:
             transforms.append(RandomHorizontalFlip(config))
 
-        transforms.append(Normalize(mean, std))
+        if config.dataset.normalize:
+            transforms.append(Normalize(mean, std))
 
         if config.augmentation.use_cutout:
             transforms.append(Cutout(config))
