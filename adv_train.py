@@ -136,6 +136,9 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
         else:
             # targeted attack
             attack_target = torch.ones_like(targets) * attack_target_class
+            # avoid target == attack target
+            attack_target[targets == attack_target] = (attack_target_class + 1) % config.dataset.n_classes
+
             loss = -1 * loss_func(noise_outputs, attack_target)  # loss to be minimized
             input_grad = torch.autograd.grad(loss, noise_inputs)[0]
             delta = delta + alpha * torch.sign(input_grad)
@@ -335,6 +338,8 @@ def pgd_validate(epoch, config, model, loss_func, val_loader, logger,
         pgd_model = PGD(model, eps=8/255, alpha=2/255, steps=5)
         if attack_target_class is not None:
             attack_target_tensor = torch.ones_like(targets) * attack_target_class
+            # avoid target == attack target
+            attack_target_tensor[targets == attack_target_tensor] = (attack_target_class + 1) % config.dataset.n_classes
             pgd_model.set_mode_targeted_by_function(lambda images, labels: attack_target_tensor)  # targeted attack
 
         adv_inputs = pgd_model(data, targets)
