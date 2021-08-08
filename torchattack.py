@@ -101,7 +101,7 @@ def attack(config, model, test_loader, loss_func, logger):
 
         with torch.no_grad():
             adv_output = model(adv_images)
-            normal_output = model(data)
+            normal_output = model(Normalize(data))
             # success = cal_accuracy(adv_output, labels)
             print("output: {} labels: {}".format(int(torch.argmax(adv_output)), int(labels)))
             acc = cal_accuracy(adv_output, labels)
