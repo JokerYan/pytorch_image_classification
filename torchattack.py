@@ -98,6 +98,8 @@ def attack(config, model, test_loader, loss_func, logger):
         data = data.to(device)
         labels = labels.to(device)
 
+        print(data.shape)
+
         # data = Normalize(data)
 
         adv_images = attack_model(data, labels)
