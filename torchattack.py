@@ -35,6 +35,8 @@ from custom_torchattacks.custom_pgd import CustomPGD
 from utils.debug_tools import clear_debug_image, save_image_stack
 
 
+attack_target_class = 0
+
 def load_config(options=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', type=str, required=True)
@@ -101,7 +103,11 @@ def attack(config, model, test_loader, loss_func, logger):
         # data = Normalize(data)
 
         adv_images = attack_model(data, labels)
-        # attack_model.set_mode_targeted_by_function(random_target_function)
+        # targeted
+        if attack_target_class is not None:
+            attack_target_tensor = torch.ones_like(labels) * attack_target_class
+            attack_target_tensor[labels == attack_target_tensor] = (attack_target_class + 1) % config.dataset.n_classes
+            attack_model.set_mode_targeted_by_function(lambda images, labels: attack_target_tensor)  # targeted attack
 
         with torch.no_grad():
             adv_output = model(adv_images)
