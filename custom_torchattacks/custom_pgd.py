@@ -34,7 +34,7 @@ class CustomPGD(PGD):
     """
     def __init__(self, config, model, eps=0.3,
                  alpha=2/255, steps=40, random_start=True):
-        super().__init__("PGD", model)
+        super(CustomPGD, self).__init__(model)
         self.eps = eps
         self.alpha = alpha
         self.steps = steps
