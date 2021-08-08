@@ -78,7 +78,7 @@ def attack(config, model, test_loader, loss_func, logger):
     # attack_model = torchattacks.CW(model, c=1, steps=1000, lr=0.01)
     # attack_model = CustomCW(config, model, c=1, steps=200, lr=0.01)
     # attack_model.set_mode_targeted_by_function(random_target_function)
-    attack_model = torchattacks.PGD(model, eps=0.3, alpha=2/255, steps=20)
+    attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
     # attack_model = CustomPGD(config, model, eps=8/255, alpha=2/255, steps=20)
 
     success_meter = AverageMeter()
