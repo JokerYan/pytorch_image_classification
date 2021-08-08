@@ -154,8 +154,8 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
                 output_chunk = model(data_chunk)
             outputs.append(output_chunk)
 
-            # loss = loss_func(output_chunk, target_chunk)
-            loss = loss_func(output_chunk, target_chunk, data_chunk)
+            loss = loss_func(output_chunk, target_chunk)
+            # loss = loss_func(output_chunk, target_chunk, data_chunk)
             losses.append(loss)
             if config.device != 'cpu' and config.train.use_apex:
                 with apex.amp.scale_loss(loss, optimizer) as scaled_loss:
@@ -419,7 +419,7 @@ def main():
         tensorboard_writer2 = DummyWriter()
 
     train_loss, val_loss = create_loss(config)
-    train_loss = LocalLipschitzValueLoss(train_loss, logger)
+    # train_loss = LocalLipschitzValueLoss(train_loss, logger)
 
     if (config.train.val_period > 0 and start_epoch == 0
             and config.train.val_first):
