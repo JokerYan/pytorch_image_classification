@@ -6,7 +6,6 @@ import torchvision.transforms as torch_transforms
 from torchattacks import PGD
 
 from pytorch_image_classification.transforms import _get_dataset_stats
-from ..attack import Attack
 
 
 class CustomPGD(PGD):
