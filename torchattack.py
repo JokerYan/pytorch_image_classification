@@ -101,7 +101,7 @@ def attack(config, model, test_loader, loss_func, logger):
         # data = Normalize(data)
 
         adv_images = attack_model(data, labels)
-        attack_model.set_mode_targeted_by_function(random_target_function)
+        # attack_model.set_mode_targeted_by_function(random_target_function)
 
         with torch.no_grad():
             adv_output = model(adv_images)
