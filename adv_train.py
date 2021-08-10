@@ -51,7 +51,7 @@ global_step = 0
 # adv training hyper-parameters
 epsilon = 8 / 255
 alpha = 10 / 255
-attack_target_class = 0
+attack_target_class = None
 
 
 def load_config():
@@ -59,6 +59,7 @@ def load_config():
     parser.add_argument('--config', type=str)
     parser.add_argument('--resume', type=str, default='')
     parser.add_argument('--local_rank', type=int, default=0)
+    parser.add_argument('--target', type=int, default=None)
     parser.add_argument('options', default=None, nargs=argparse.REMAINDER)
     args = parser.parse_args()
 
@@ -73,6 +74,9 @@ def load_config():
         config_path = pathlib.Path(args.resume) / 'config.yaml'
         config.merge_from_file(config_path.as_posix())
         config.merge_from_list(['train.resume', True])
+    if args.target is not None:
+        global attack_target_class
+        attack_target_class = args.target
     config.merge_from_list(['train.dist.local_rank', args.local_rank])
     config = update_config(config)
     config.freeze()
