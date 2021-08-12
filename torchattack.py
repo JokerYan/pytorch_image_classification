@@ -14,8 +14,6 @@ import tqdm
 
 from fvcore.common.checkpoint import Checkpointer
 
-from custom_models.expert_model import ExpertModel
-from custom_models.smooth_model import SmoothModel
 from pytorch_image_classification import (
     apply_data_parallel_wrapper,
     create_dataloader,
