@@ -130,7 +130,7 @@ def attack(config, model, test_loader, loss_func, logger):
             if attack_target_class == -1:
                 success = cal_accuracy(adv_output, attack_target_list[-1])
             elif attack_target_class is not None:
-                success = cal_accuracy(adv_output, torch.Tensor([attack_target_class]))
+                success = cal_accuracy(adv_output, torch.Tensor([attack_target_class]).to(device))
             else:
                 success = 0
             print("Batch {} attack success: {}\tdefense acc: {}".format(i, success, acc))
