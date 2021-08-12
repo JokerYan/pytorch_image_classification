@@ -18,7 +18,7 @@ model_path_dict = {
     5: 'experiments/cifar10/resnet/exp17/checkpoint_00160.pth',
     6: 'experiments/cifar10/resnet/exp18/checkpoint_00160.pth',
     7: 'experiments/cifar10/resnet/exp19/checkpoint_00160.pth',
-    # 8: 'experiments/cifar10/resnet/exp20/checkpoint_00160.pth',
+    8: 'experiments/cifar10/resnet/exp20/checkpoint_00160.pth',
     # 9: 'experiments/cifar10/resnet/exp21/checkpoint_00160.pth',
 }
 
