@@ -116,7 +116,9 @@ def attack(config, model, test_loader, loss_func, logger):
             adv_output = model(adv_images)
             normal_output = model(data)
             # success = cal_accuracy(adv_output, labels)
-            print("output: {} labels: {}".format(int(torch.argmax(adv_output)), int(labels)))
+            print("normal_output: {} output: {} labels: {}".format(
+                int(torch.argmax(normal_output)),
+                int(torch.argmax(adv_output)), int(labels)))
             acc = cal_accuracy(adv_output, labels)
             # acc = cal_accuracy(normal_output, labels)
             print("Batch {} attack success: {}\tdefense acc: {}".format(i, "N.A.", acc))
