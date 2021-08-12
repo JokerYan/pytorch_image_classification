@@ -10,7 +10,7 @@ model:
     initial_channels: 16
     block_type: basic
 custom_model:
-  name: expert
+  name: expert_model
 train:
   seed: 0
   precision: O0
