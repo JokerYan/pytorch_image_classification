@@ -51,6 +51,8 @@ class Network(nn.Module):
         naive_output = self.naive_model(x)
         target_class = torch.argmax(naive_output).item()
 
+        print(target_class)
+
         if target_class in model_path_dict:
             expert_output = self.model_list[target_class](x)
         else:
