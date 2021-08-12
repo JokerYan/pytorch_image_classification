@@ -8,6 +8,7 @@ from pytorch_image_classification import create_model
 
 config_path = 'configs/cifar/resnet.yaml'
 naive_model_path = 'experiments/cifar10/resnet/exp12/checkpoint_00160.pth'
+untargetd_model_path = 'experiments/cifar10/resnet/exp09/checkpoint_00160.pth'
 model_path_dict = {
     0: 'experiments/cifar10/resnet/exp11/checkpoint_00160.pth',
     1: 'experiments/cifar10/resnet/exp13/checkpoint_00160.pth',
@@ -29,31 +30,30 @@ class Network(nn.Module):
         model_list = []
         for i in range(len(model_path_dict)):
             model_path = model_path_dict[i]
-            output_dir = pathlib.Path(model_path).parent
-            model = create_model(config)
-
-            # load model
-            checkpointer = Checkpointer(model,
-                                        save_dir=output_dir)
-            checkpointer.load(model_path)
-
+            model = self.create_model_from_path(config, model_path)
             model_list.append(model)
         self.model_list = nn.ModuleList(model_list)
 
-        # create and load naive model (without adv training)
-        self.naive_model = create_model(config)
-        model_path = naive_model_path
+        self.naive_model = self.create_model_from_path(config, naive_model_path)
+        self.untargetd_model = self.create_model_from_path(config, untargetd_model_path)
+
+    def create_model_from_path(self, config, model_path):
         output_dir = pathlib.Path(model_path).parent
-        checkpointer = Checkpointer(self.naive_model,
+        model = create_model(config)
+
+        # load model
+        checkpointer = Checkpointer(model,
                                     save_dir=output_dir)
         checkpointer.load(model_path)
+        return model
 
     def forward(self, x):
         naive_output = self.naive_model(x)
         target_class = torch.argmax(naive_output).item()
 
-        print(target_class)
-
-        expert_output = self.model_list[target_class](x)
+        if target_class in model_path_dict:
+            expert_output = self.model_list[target_class](x)
+        else:
+            expert_output = self.untargetd_model(x)
         return expert_output
 
