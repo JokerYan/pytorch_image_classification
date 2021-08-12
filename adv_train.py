@@ -131,7 +131,7 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
         noise_inputs.requires_grad = True
         noise_outputs = model(noise_inputs)
 
-        if attack_target_class is None:
+        if attack_target_class is not None and attack_target_class != -1:
             # un-targeted attack
             loss = loss_func(noise_outputs, targets)  # loss to be maximized
             input_grad = torch.autograd.grad(loss, noise_inputs)[0]
@@ -354,7 +354,7 @@ def pgd_validate(epoch, config, model, loss_func, val_loader, logger,
 
         # generate pgd adv inputs
         pgd_model = PGD(model, eps=8/255, alpha=2/255, steps=5)
-        if attack_target_class is not None:
+        if attack_target_class is not None and attack_target_class != -1:
             attack_target_tensor = torch.ones_like(targets) * attack_target_class
             # avoid target == attack target
             attack_target_tensor[targets == attack_target_tensor] = (attack_target_class + 1) % config.dataset.n_classes
