@@ -56,5 +56,6 @@ class Network(nn.Module):
         else:
             expert_output = self.untargetd_model(x)
         print(target_class, torch.argmax(expert_output).item())
-        return expert_output
+        # return expert_output
+        return naive_output
 
