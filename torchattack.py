@@ -36,12 +36,13 @@ from custom_torchattacks.custom_pgd import CustomPGD
 from utils.debug_tools import clear_debug_image, save_image_stack
 
 
-attack_target_class = 0
+attack_target_class = None
 
 def load_config(options=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', type=str, required=True)
     parser.add_argument('options', default=None, nargs=argparse.REMAINDER)
+    parser.add_argument('--target', type=int, default=None)
     args = parser.parse_args()
 
     config = get_default_config()
@@ -49,6 +50,9 @@ def load_config(options=None):
     config.merge_from_list(args.options)
     if options:
         config.merge_from_list(options)
+    if args.target is not None:
+        global attack_target_class
+        attack_target_class = args.target
     update_config(config)
     config.freeze()
     return config
