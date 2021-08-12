@@ -5,7 +5,7 @@ import pathlib
 import time
 
 from custom_loss.llv_loss import LocalLipschitzValueLoss
-from pytorch_image_classification.models import create_custom_model
+from pytorch_image_classification.models import create_input_sigmoid_model
 
 try:
     import apex
@@ -370,7 +370,7 @@ def main():
     train_loader, val_loader = create_dataloader(config, is_train=True)
 
     if config.custom_model.name:
-        model = create_custom_model(config)
+        model = create_input_sigmoid_model(config)
     else:
         model = create_model(config)
     macs, n_params = count_op(config, model)

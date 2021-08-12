@@ -14,6 +14,7 @@ import tqdm
 
 from fvcore.common.checkpoint import Checkpointer
 
+from custom_models.expert_model import ExpertModel
 from custom_models.smooth_model import SmoothModel
 from pytorch_image_classification import (
     apply_data_parallel_wrapper,
@@ -23,7 +24,7 @@ from pytorch_image_classification import (
     get_default_config,
     update_config,
 )
-from pytorch_image_classification.models import create_custom_model
+from pytorch_image_classification.models import create_input_sigmoid_model, create_expert_model
 from pytorch_image_classification.transforms import _get_dataset_stats
 from pytorch_image_classification.utils import (
     AverageMeter,
@@ -137,14 +138,18 @@ def main():
 
     logger = create_logger(name=__name__, distributed_rank=get_rank())
 
-    if config.custom_model.name:
-        model = create_custom_model(config)
+    if config.custom_model.name == 'input_sigmoid_model':
+        model = create_input_sigmoid_model(config)
+    elif config.custom_model.name == 'expert':
+        model = create_expert_model(config)
     else:
         model = create_model(config)
     model = apply_data_parallel_wrapper(config, model)
-    checkpointer = Checkpointer(model,
-                                save_dir=output_dir)
-    checkpointer.load(config.test.checkpoint)
+
+    if config.custom_model.name != 'expert':
+        checkpointer = Checkpointer(model,
+                                    save_dir=output_dir)
+        checkpointer.load(config.test.checkpoint)
 
     test_loader = create_dataloader(config, is_train=False)
     _, test_loss = create_loss(config)
