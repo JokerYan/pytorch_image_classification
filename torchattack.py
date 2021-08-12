@@ -74,6 +74,7 @@ def random_target_function(images, labels):
     # attack_target = torch.ones_like(labels).cuda() * 9
     global attack_target_list
     attack_target_list.append(attack_target)
+    print("===========", len(attack_target_list))
     return attack_target
 
 
@@ -125,8 +126,10 @@ def attack(config, model, test_loader, loss_func, logger):
                 int(torch.argmax(adv_output)), int(labels)))
             acc = cal_accuracy(adv_output, labels)
             # acc = cal_accuracy(normal_output, labels)
-            if attack_target_class is not None:
+            if attack_target_class == -1:
                 success = cal_accuracy(adv_output, attack_target_list[-1])
+            elif attack_target_class is not None:
+                success = cal_accuracy(adv_output, attack_target_class)
             else:
                 success = 0
             print("Batch {} attack success: {}\tdefense acc: {}".format(i, success, acc))
