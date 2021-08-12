@@ -145,6 +145,7 @@ def main():
     if config.custom_model.name == 'input_sigmoid_model':
         model = create_input_sigmoid_model(config)
     elif config.custom_model.name == 'expert':
+        print('===== expert model loaded =====')
         model = create_expert_model(config)
     else:
         model = create_model(config)
