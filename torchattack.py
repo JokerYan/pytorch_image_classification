@@ -68,9 +68,12 @@ def cal_accuracy(outputs, labels):
     return correct / total
 
 
+attack_target_list = []
 def random_target_function(images, labels):
     attack_target = torch.remainder(torch.randint(1, 9, labels.shape).cuda() + labels, 10)
     # attack_target = torch.ones_like(labels).cuda() * 9
+    global attack_target_list
+    attack_target_list.append(attack_target)
     return attack_target
 
 
@@ -117,14 +120,17 @@ def attack(config, model, test_loader, loss_func, logger):
         with torch.no_grad():
             adv_output = model(adv_images)
             normal_output = model(data)
-            # success = cal_accuracy(adv_output, labels)
             print("normal_output: {} output: {} labels: {}".format(
                 int(torch.argmax(normal_output)),
                 int(torch.argmax(adv_output)), int(labels)))
             acc = cal_accuracy(adv_output, labels)
             # acc = cal_accuracy(normal_output, labels)
-            print("Batch {} attack success: {}\tdefense acc: {}".format(i, "N.A.", acc))
-            # success_meter.update(success, 1)
+            if attack_target_class is not None:
+                success = cal_accuracy(adv_output, attack_target_list[-1])
+            else:
+                success = 0
+            print("Batch {} attack success: {}\tdefense acc: {}".format(i, success, acc))
+            success_meter.update(success, 1)
             accuracy_meter.update(acc, 1)
         adv_image_list.append(adv_images)
 
