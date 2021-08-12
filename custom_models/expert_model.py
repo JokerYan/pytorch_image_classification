@@ -52,6 +52,8 @@ class ExpertModel(nn.Module):
         naive_output = self.naive_model(x)
         target_class = torch.argmax(naive_output)
 
+        print(target_class)
+
         expert_output = self.model_list[target_class[0]](x)
         return expert_output
 
