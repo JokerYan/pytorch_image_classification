@@ -51,7 +51,7 @@ global_step = 0
 # adv training hyper-parameters
 epsilon = 8 / 255
 alpha = 10 / 255
-attack_target_class = None
+attack_target_class = None  # -1 when random targeted
 
 
 def load_config():
@@ -134,6 +134,14 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
         if attack_target_class is None:
             # un-targeted attack
             loss = loss_func(noise_outputs, targets)  # loss to be maximized
+            input_grad = torch.autograd.grad(loss, noise_inputs)[0]
+            delta = delta + alpha * torch.sign(input_grad)
+            delta.clamp_(-epsilon, epsilon)
+        elif attack_target_class == -1:
+            # random targeted attack
+            attack_target = torch.remainder(torch.randint(1, 9, targets.shape).cuda() + targets, 10)
+
+            loss = loss_func(noise_outputs, attack_target)  # loss to be minimized
             input_grad = torch.autograd.grad(loss, noise_inputs)[0]
             delta = delta + alpha * torch.sign(input_grad)
             delta.clamp_(-epsilon, epsilon)
@@ -308,6 +316,12 @@ def validate(epoch, config, model, loss_func, val_loader, logger,
                 tensorboard_writer.add_histogram(name, param, epoch)
 
 
+def random_target_function(images, labels):
+    attack_target = torch.remainder(torch.randint(1, 9, labels.shape).cuda() + labels, 10)
+    # attack_target = torch.ones_like(labels).cuda() * 9
+    return attack_target
+
+
 def pgd_validate(epoch, config, model, loss_func, val_loader, logger,
              tensorboard_writer):
     logger.info(f'PGD Val {epoch}')
@@ -345,6 +359,8 @@ def pgd_validate(epoch, config, model, loss_func, val_loader, logger,
             # avoid target == attack target
             attack_target_tensor[targets == attack_target_tensor] = (attack_target_class + 1) % config.dataset.n_classes
             pgd_model.set_mode_targeted_by_function(lambda images, labels: attack_target_tensor)  # targeted attack
+        elif attack_target_class == -1:  # random targeted
+            pgd_model.set_mode_targeted_by_function(random_target_function)
 
         adv_inputs = pgd_model(data, targets)
 
