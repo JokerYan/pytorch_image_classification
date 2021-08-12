@@ -109,7 +109,6 @@ def attack(config, model, test_loader, loss_func, logger):
 
         # data = Normalize(data)
 
-        adv_images = attack_model(data, labels)
         # targeted
         if attack_target_class is not None and attack_target_class != -1:
             attack_target_tensor = torch.ones_like(labels) * attack_target_class
@@ -117,6 +116,8 @@ def attack(config, model, test_loader, loss_func, logger):
             attack_model.set_mode_targeted_by_function(lambda images, labels: attack_target_tensor)  # targeted attack
         elif attack_target_class == -1:
             attack_model.set_mode_targeted_by_function(random_target_function)
+
+        adv_images = attack_model(data, labels)
 
         with torch.no_grad():
             adv_output = model(adv_images)
