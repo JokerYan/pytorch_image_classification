@@ -22,9 +22,9 @@ model_path_dict = {
 }
 
 
-class ExpertModel(nn.Module):
+class Network(nn.Module):
     def __init__(self, config):
-        super(ExpertModel, self).__init__()
+        super(Network, self).__init__()
         self.config_list = config
         model_list = []
         for i in range(len(model_path_dict)):
