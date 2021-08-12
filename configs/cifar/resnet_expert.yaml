@@ -1,6 +1,7 @@
 device: cuda
 dataset:
   name: CIFAR10
+  normalize: False
 model:
   type: cifar
   name: resnet
