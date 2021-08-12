@@ -50,10 +50,10 @@ class Network(nn.Module):
 
     def forward(self, x):
         naive_output = self.naive_model(x)
-        target_class = torch.argmax(naive_output)
+        target_class = torch.argmax(naive_output).item()
 
         print(target_class)
 
-        expert_output = self.model_list[target_class[0]](x)
+        expert_output = self.model_list[target_class](x)
         return expert_output
 
