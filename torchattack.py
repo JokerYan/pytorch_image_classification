@@ -71,7 +71,7 @@ def cal_accuracy(outputs, labels):
 def random_target_function(images, labels):
     attack_target = torch.remainder(torch.randint(1, 9, labels.shape).cuda() + labels, 10)
     # attack_target = torch.ones_like(labels).cuda() * 9
-    print('label: {} target: {}'.format(labels.item(), attack_target.item(())))
+    print('label: {} target: {}'.format(labels.item(), attack_target.item()))
     return attack_target
 
 
