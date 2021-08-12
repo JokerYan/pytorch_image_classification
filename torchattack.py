@@ -144,14 +144,13 @@ def main():
 
     if config.custom_model.name == 'input_sigmoid_model':
         model = create_input_sigmoid_model(config)
-    elif config.custom_model.name == 'expert':
-        print('===== expert model loaded =====')
+    elif config.custom_model.name == 'expert_model':
         model = create_expert_model(config)
     else:
         model = create_model(config)
     model = apply_data_parallel_wrapper(config, model)
 
-    if config.custom_model.name != 'expert':
+    if config.custom_model.name != 'expert_model':
         checkpointer = Checkpointer(model,
                                     save_dir=output_dir)
         checkpointer.load(config.test.checkpoint)
