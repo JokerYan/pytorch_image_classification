@@ -71,6 +71,7 @@ def cal_accuracy(outputs, labels):
 def random_target_function(images, labels):
     attack_target = torch.remainder(torch.randint(1, 9, labels.shape).cuda() + labels, 10)
     # attack_target = torch.ones_like(labels).cuda() * 9
+    print('label: {} target: {}'.format(labels.item(), attack_target.item(())))
     return attack_target
 
 
@@ -111,6 +112,8 @@ def attack(config, model, test_loader, loss_func, logger):
             attack_target_tensor = torch.ones_like(labels) * attack_target_class
             attack_target_tensor[labels == attack_target_tensor] = (attack_target_class + 1) % config.dataset.n_classes
             attack_model.set_mode_targeted_by_function(lambda images, labels: attack_target_tensor)  # targeted attack
+        else:
+            attack_model.set_mode_targeted_by_function(random_target_function)
 
         with torch.no_grad():
             adv_output = model(adv_images)
