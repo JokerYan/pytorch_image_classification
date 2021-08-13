@@ -182,6 +182,9 @@ def post_tune(config, model, images):
             loss.backward()
             optimizer.step()
 
+            with torch.no_grad():
+                print(model(adv_inputs))
+
     return model
 
 
