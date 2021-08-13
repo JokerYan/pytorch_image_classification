@@ -132,7 +132,7 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
         noise_outputs = model(noise_inputs)
 
         if attack_target_class is not None and attack_target_class != -1:
-            # targeted attack
+            # un-targeted attack
             loss = loss_func(noise_outputs, targets)  # loss to be maximized
             input_grad = torch.autograd.grad(loss, noise_inputs)[0]
             delta = delta + alpha * torch.sign(input_grad)
@@ -141,7 +141,7 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
             # random targeted attack
             attack_target = torch.remainder(torch.randint(1, 9, targets.shape).cuda() + targets, 10)
 
-            loss = loss_func(noise_outputs, attack_target)  # loss to be minimized
+            loss = -1 * loss_func(noise_outputs, attack_target)  # loss to be minimized
             input_grad = torch.autograd.grad(loss, noise_inputs)[0]
             delta = delta + alpha * torch.sign(input_grad)
             delta.clamp_(-epsilon, epsilon)
