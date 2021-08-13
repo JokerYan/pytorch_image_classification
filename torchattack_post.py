@@ -201,7 +201,7 @@ def post_tune(config, model, images):
             # adv_inputs = attack_model(noise_inputs, targets)
             outputs = model(adv_inputs)
             # print(targets[0], torch.argmax(outputs).item())
-            print(targets, outputs)
+            print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
 
             # loss = loss_func(outputs, targets)
             loss = nn.KLDivLoss(size_average=False)(
