@@ -223,16 +223,16 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
 
             scheduler.step()
 
-        if get_rank() == 0:
-            elapsed = time.time() - start
-            logger.info(f'Elapsed {elapsed:.2f}')
+    if get_rank() == 0:
+        elapsed = time.time() - start
+        logger.info(f'Elapsed {elapsed:.2f}')
 
-            tensorboard_writer.add_scalar('Train/Loss', loss_meter.avg, epoch)
-            tensorboard_writer.add_scalar('Train/Acc1', acc1_meter.avg, epoch)
-            tensorboard_writer.add_scalar('Train/Acc5', acc5_meter.avg, epoch)
-            tensorboard_writer.add_scalar('Train/Time', elapsed, epoch)
-            tensorboard_writer.add_scalar('Train/LearningRate',
-                                          scheduler.get_last_lr()[0], epoch)
+        tensorboard_writer.add_scalar('Train/Loss', loss_meter.avg, epoch)
+        tensorboard_writer.add_scalar('Train/Acc1', acc1_meter.avg, epoch)
+        tensorboard_writer.add_scalar('Train/Acc5', acc5_meter.avg, epoch)
+        tensorboard_writer.add_scalar('Train/Time', elapsed, epoch)
+        tensorboard_writer.add_scalar('Train/LearningRate',
+                                      scheduler.get_last_lr()[0], epoch)
 
 
 def validate(epoch, config, model, loss_func, val_loader, logger,
