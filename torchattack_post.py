@@ -130,10 +130,10 @@ def attack(config, model, test_loader, loss_func, logger):
             # post_train(config, model, adv_images, labels)
             post_tuned_model = post_tune(config, model, adv_images)
             post_tuned_output = post_tuned_model(adv_images)
-            print(post_tuned_output, labels)
+            print(torch.argmax(post_tuned_output), labels)
             # acc = cal_accuracy(normal_output, labels)
             # acc = cal_accuracy(adv_output, labels)
-            acc = cal_accuracy(torch.argmax(post_tuned_output), labels)
+            acc = cal_accuracy(post_tuned_output, labels)
             if attack_target_class == -1:
                 success = cal_accuracy(adv_output, attack_target_list[-1])
             elif attack_target_class is not None:
