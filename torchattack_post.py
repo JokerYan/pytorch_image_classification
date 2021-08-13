@@ -171,7 +171,8 @@ def post_tune(config, model, images):
             optimizer.zero_grad()
             adv_inputs = images + delta
             outputs = model(adv_inputs)
-            print(targets[0], torch.argmax(outputs).item())
+            # print(targets[0], torch.argmax(outputs).item())
+            print(outputs)
 
             loss = loss_func(outputs, targets)
             loss.backward()
