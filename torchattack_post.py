@@ -174,9 +174,6 @@ def post_tune(config, model, images):
     device = torch.device(config.device)
     model = copy.deepcopy(model)
 
-    noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
-    images = images.detach() + noise
-
     fix_model = copy.deepcopy(model)
     original_output = fix_model(images)
     with torch.enable_grad():
@@ -190,19 +187,19 @@ def post_tune(config, model, images):
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
         for i in range(100):
             optimizer.zero_grad()
-            noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
-            noise_inputs = images.detach() + noise
-            noise_inputs.requires_grad = True
-            noise_outputs = model(noise_inputs)
-
-            loss = loss_func(noise_outputs, targets)  # loss to be maximized
-            input_grad = torch.autograd.grad(loss, noise_inputs)[0]
-            # print(torch.mean(torch.abs(input_grad)))
-            delta = noise + alpha * torch.sign(input_grad)
-            delta.clamp_(-epsilon, epsilon)
-
-            adv_inputs = images + delta
-            # adv_inputs = attack_model(noise_inputs, targets)
+            # noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
+            # noise_inputs = images.detach() + noise
+            # noise_inputs.requires_grad = True
+            # noise_outputs = model(noise_inputs)
+            #
+            # loss = loss_func(noise_outputs, targets)  # loss to be maximized
+            # input_grad = torch.autograd.grad(loss, noise_inputs)[0]
+            # # print(torch.mean(torch.abs(input_grad)))
+            # delta = noise + alpha * torch.sign(input_grad)
+            # delta.clamp_(-epsilon, epsilon)
+            #
+            # adv_inputs = images + delta
+            adv_inputs = attack_model(images, targets)
             outputs = model(adv_inputs)
             # print(targets[0], torch.argmax(outputs).item())
             print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
