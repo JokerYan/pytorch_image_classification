@@ -205,8 +205,8 @@ def post_tune(config, model, images):
 
             # loss = loss_func(outputs, targets)
             loss = nn.KLDivLoss(size_average=False)(
-                torch.softmax(outputs, dim=1),
-                torch.softmax(original_output, dim=1)
+                torch.log_softmax(outputs, dim=1),
+                torch.log_softmax(original_output, dim=1)
             )
             print(loss)
             loss.backward()
