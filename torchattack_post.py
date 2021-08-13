@@ -156,8 +156,8 @@ def post_tune(config, model, images):
     model = copy.deepcopy(model)
     with torch.enable_grad():
         optimizer = create_optimizer(config, model)
-        for g in optimizer.param_groups:
-            g['lr'] = 0.0001
+        # for g in optimizer.param_groups:
+        #     g['lr'] = 0.0001
         targets = torch.randint(0, 9, [len(images)]).to(device)
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
         for i in range(100):
@@ -178,6 +178,7 @@ def post_tune(config, model, images):
             # print(targets[0], torch.argmax(outputs).item())
             print(outputs)
 
+            optimizer.zero_grad()
             loss = loss_func(outputs, targets)
             loss.backward()
             optimizer.step()
