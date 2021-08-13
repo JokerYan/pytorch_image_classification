@@ -149,7 +149,7 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
         noise_inputs.requires_grad = False
         adv_inputs.requires_grad = False
 
-        natural_loss = loss_func(data, targets)
+        natural_loss = loss_func(normal_output, targets)
         batch_size = len(data)
         # robust_loss = (1.0 / batch_size) * criterion_kl(torch.log_softmax(adv_outputs, dim=1),
         #                                                 torch.softmax(normal_output, dim=1))
