@@ -127,7 +127,7 @@ def attack(config, model, test_loader, loss_func, logger):
                 int(torch.argmax(normal_output)),
                 int(torch.argmax(adv_output)), int(labels)))
 
-            post_train(config, model, data, labels)
+            post_train(config, model, adv_images, labels)
             # post_tuned_model = post_tune(config, model, adv_images)
             # post_tuned_output = post_tuned_model(adv_images)
             # acc = cal_accuracy(normal_output, labels)
