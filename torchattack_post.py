@@ -127,11 +127,12 @@ def attack(config, model, test_loader, loss_func, logger):
                 int(torch.argmax(normal_output)),
                 int(torch.argmax(adv_output)), int(labels)))
 
-            post_tuned_model = post_tune(config, model, adv_images)
-            post_tuned_output = post_tuned_model(adv_images)
+            post_train(config, model, data, labels)
+            # post_tuned_model = post_tune(config, model, adv_images)
+            # post_tuned_output = post_tuned_model(adv_images)
             # acc = cal_accuracy(normal_output, labels)
-            # acc = cal_accuracy(adv_output, labels)
-            acc = cal_accuracy(post_tuned_output, labels)
+            acc = cal_accuracy(adv_output, labels)
+            # acc = cal_accuracy(post_tuned_output, labels)
             if attack_target_class == -1:
                 success = cal_accuracy(adv_output, attack_target_list[-1])
             elif attack_target_class is not None:
@@ -146,6 +147,24 @@ def attack(config, model, test_loader, loss_func, logger):
     logger.info(f'Success: {success_meter.avg:.4f} Accuracy {accuracy_meter.avg:.4f} Delta {delta_meter.avg:.4f}')
 
     return adv_image_list, accuracy_meter.avg, delta_meter.avg
+
+
+def post_train(config, model, images, targets):
+    loss_func = nn.CrossEntropyLoss()
+    device = torch.device(config.device)
+    model = copy.deepcopy(model)
+    optimizer = torch.optim.SGD(lr=0.01, params=model.parameters())
+    with torch.enable_grad():
+        for i in range(10):
+            optimizer.zero_grad()
+            outputs = model(images)
+            print(outputs)
+            loss = loss_func(outputs, targets)
+            loss.backward()
+            optimizer.step()
+            input()
+
+
 
 
 def post_tune(config, model, images):
