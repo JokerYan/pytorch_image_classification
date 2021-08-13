@@ -158,7 +158,7 @@ def post_train(config, model, images, targets):
         for i in range(10):
             optimizer.zero_grad()
             outputs = model(images)
-            print(outputs)
+            print(targets, torch.argmax(outputs).item(), outputs)
             loss = loss_func(outputs, targets)
             loss.backward()
             optimizer.step()
