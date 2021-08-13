@@ -114,6 +114,7 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
     for step, (data, targets) in enumerate(train_loader):
         step += 1
         global_step += 1
+        batch_size = len(data)
 
         if get_rank() == 0 and step == 1:
             if config.tensorboard.train_images:
@@ -127,6 +128,7 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
         targets = send_targets_to_device(config, targets, device)
 
         # generate fgsm adv examples
+        normal_outputs = model(data)
         delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
         noise_inputs = data.detach() + delta
         noise_inputs.requires_grad = True
@@ -134,14 +136,15 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
 
         assert attack_target_class is None  # only support un-targeted attacks
         # un-targeted attack
-        loss = loss_func(noise_outputs, targets)  # loss to be maximized
+        # loss = loss_func(noise_outputs, targets)  # loss to be maximized
+        loss = (1.0 / batch_size) * criterion_kl(torch.log_softmax(noise_outputs, dim=1),
+                                                        torch.softmax(normal_outputs, dim=1))
         input_grad = torch.autograd.grad(loss, noise_inputs)[0]
         delta = delta + alpha * torch.sign(input_grad)
         delta.clamp_(-epsilon, epsilon)
 
         optimizer.zero_grad()
 
-        normal_output = model(data)
         adv_inputs = data.detach() + delta.detach()
         adv_outputs = model(adv_inputs)
 
@@ -150,11 +153,9 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
         adv_inputs.requires_grad = False
 
         natural_loss = loss_func(normal_output, targets)
-        batch_size = len(data)
         robust_loss = (1.0 / batch_size) * criterion_kl(torch.log_softmax(adv_outputs, dim=1),
-                                                        torch.softmax(normal_output, dim=1))
+                                                        torch.softmax(normal_outputs, dim=1))
         loss = natural_loss + 6 * robust_loss
-        # loss = natural_loss
         loss.backward()
         optimizer.step()
 
