@@ -173,6 +173,10 @@ def post_tune(config, model, images):
     loss_func = nn.CrossEntropyLoss()
     device = torch.device(config.device)
     model = copy.deepcopy(model)
+
+    noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
+    images = images.detach() + noise
+
     fix_model = copy.deepcopy(model)
     original_output = fix_model(images)
     with torch.enable_grad():
