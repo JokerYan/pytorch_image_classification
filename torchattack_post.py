@@ -161,8 +161,8 @@ def post_tune(config, model, images):
         targets = torch.randint(0, 9, [len(images)]).to(device)
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
         for i in range(100):
-            delta = (torch.rand_like(images) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
-            noise_inputs = images + delta
+            delta = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
+            noise_inputs = images.detach() + delta
             noise_inputs.requires_grad = True
             # noise_outputs = model(noise_inputs)
             #
@@ -179,6 +179,7 @@ def post_tune(config, model, images):
 
             optimizer.zero_grad()
             loss = loss_func(outputs, targets)
+            print(loss)
             loss.backward()
             optimizer.step()
 
