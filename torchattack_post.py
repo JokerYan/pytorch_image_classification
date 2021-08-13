@@ -161,7 +161,7 @@ def post_tune(config, model, images):
         # for g in optimizer.param_groups:
         #     g['lr'] = 0.001
         # targets = torch.randint(0, 9, [len(images)]).to(device)
-        targets = torch.ones([len(images)]).to(device) * torch.argmax(normal_output)
+        targets = torch.ones([len(images)]).to(device) * int(torch.argmax(normal_output))
         print(targets)
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
         for i in range(100):
