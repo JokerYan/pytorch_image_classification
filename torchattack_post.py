@@ -152,11 +152,12 @@ def post_tune(config, model, images):
     alpha = 2 / 255
     epsilon = 8 / 255
     loss_func = nn.CrossEntropyLoss()
+    device = torch.device(config.device)
     with torch.enable_grad():
         model = copy.deepcopy(model)
         optimizer = create_optimizer(config, model)
         for i in range(100):
-            targets = torch.randint(0, 9, [len(images)])
+            targets = torch.randint(0, 9, [len(images)]).to(device)
             delta = (torch.rand_like(images) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
             noise_inputs = images + delta
             noise_inputs.requires_grad = True
