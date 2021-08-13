@@ -198,14 +198,14 @@ def post_tune(config, model, images):
             adv_inputs = images + delta
             # adv_inputs = attack_model(noise_inputs, targets)
             outputs = model(adv_inputs)
-            print(targets[0], torch.argmax(outputs).item())
-
+            # print(targets[0], torch.argmax(outputs).item())
             print(targets, outputs)
 
             loss = loss_func(outputs, targets)
             print(loss)
             loss.backward()
             optimizer.step()
+            input()
 
     return model
 
