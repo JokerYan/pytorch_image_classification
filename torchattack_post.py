@@ -156,22 +156,24 @@ def post_tune(config, model, images):
     with torch.enable_grad():
         model = copy.deepcopy(model)
         optimizer = create_optimizer(config, model)
-        for g in optimizer.param_groups:
-            g['lr'] = 0.001
+        # for g in optimizer.param_groups:
+        #     g['lr'] = 0.001
         targets = torch.randint(0, 9, [len(images)]).to(device)
+        attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
         for i in range(100):
             delta = (torch.rand_like(images) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
             noise_inputs = images + delta
             noise_inputs.requires_grad = True
-            noise_outputs = model(noise_inputs)
-
-            loss = loss_func(noise_outputs, targets)  # loss to be maximized
-            input_grad = torch.autograd.grad(loss, noise_inputs)[0]
-            delta = delta + alpha * torch.sign(input_grad)
-            delta.clamp_(-epsilon, epsilon)
-
-            optimizer.zero_grad()
-            adv_inputs = images + delta
+            # noise_outputs = model(noise_inputs)
+            #
+            # loss = loss_func(noise_outputs, targets)  # loss to be maximized
+            # input_grad = torch.autograd.grad(loss, noise_inputs)[0]
+            # delta = delta + alpha * torch.sign(input_grad)
+            # delta.clamp_(-epsilon, epsilon)
+            #
+            # optimizer.zero_grad()
+            # adv_inputs = images + delta
+            adv_inputs = attack_model(noise_inputs, targets)
             outputs = model(adv_inputs)
             # print(targets[0], torch.argmax(outputs).item())
             print(outputs)
