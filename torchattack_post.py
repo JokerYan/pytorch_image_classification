@@ -153,13 +153,15 @@ def post_tune(config, model, images):
     epsilon = 8 / 255
     loss_func = nn.CrossEntropyLoss()
     device = torch.device(config.device)
-    print(model(images))
+    normal_output = model(images)
+    print(normal_output)
     model = copy.deepcopy(model)
     with torch.enable_grad():
         optimizer = create_optimizer(config, model)
         # for g in optimizer.param_groups:
         #     g['lr'] = 0.001
-        targets = torch.randint(0, 9, [len(images)]).to(device)
+        # targets = torch.randint(0, 9, [len(images)]).to(device)
+        targets = torch.ones([len(images)]).to(device) * torch.argmax(normal_output)
         print(targets)
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
         for i in range(100):
