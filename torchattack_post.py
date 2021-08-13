@@ -153,7 +153,7 @@ def post_tune(config, model, images):
     epsilon = 8 / 255
     loss_func = nn.CrossEntropyLoss()
     device = torch.device(config.device)
-    # model = copy.deepcopy(model)
+    model = copy.deepcopy(model)
     with torch.enable_grad():
         # optimizer = create_optimizer(config, model)
         optimizer = torch.optim.SGD(lr=0.1, params=model.parameters())
