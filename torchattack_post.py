@@ -156,6 +156,8 @@ def post_tune(config, model, images):
     with torch.enable_grad():
         model = copy.deepcopy(model)
         optimizer = create_optimizer(config, model)
+        for g in optimizer.param_groups:
+            g['lr'] = 0.001
         targets = torch.randint(0, 9, [len(images)]).to(device)
         for i in range(100):
             delta = (torch.rand_like(images) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
