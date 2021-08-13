@@ -210,8 +210,8 @@ def post_tune(config, model, images):
                 torch.log_softmax(original_output, dim=1)
             )
             print(loss)
-            loss.backward()
-            optimizer.step()
+            # loss.backward()
+            # optimizer.step()
             input()
 
     return model
