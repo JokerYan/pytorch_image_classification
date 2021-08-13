@@ -176,7 +176,7 @@ def post_tune(config, model, images):
     original_output = model(images)
     with torch.enable_grad():
         # optimizer = create_optimizer(config, model)
-        optimizer = torch.optim.SGD(lr=0.1, params=model.parameters())
+        optimizer = torch.optim.SGD(lr=0.01, params=model.parameters())
         # for g in optimizer.param_groups:
         #     g['lr'] = 0.00001
         # targets = torch.randint(0, 9, [len(images)]).to(device)
