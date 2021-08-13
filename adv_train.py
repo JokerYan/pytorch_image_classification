@@ -136,6 +136,7 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
                 # un-targeted attack
                 loss = loss_func(noise_outputs, targets)  # loss to be maximized
                 input_grad = torch.autograd.grad(loss, noise_inputs)[0]
+                print(torch.mean(torch.abs(input_grad)))
                 delta = delta + alpha * torch.sign(input_grad)
                 delta.clamp_(-epsilon, epsilon)
             elif attack_target_class == -1:
