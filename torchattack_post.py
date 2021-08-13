@@ -207,10 +207,12 @@ def post_tune(config, model, images):
                 # print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
 
             # loss = loss_func(outputs, targets)
-            loss = nn.KLDivLoss(size_average=False, log_target=True)(
+            kl_loss = nn.KLDivLoss(size_average=False, log_target=True)(
                 torch.log_softmax(outputs_list[0], dim=1),
                 torch.log_softmax(outputs_list[1], dim=1)
             )
+            amplitude_regularization = torch.sum(torch.abs(outputs_list[0])) + torch.sum(torch.abs(outputs_list[0]))
+            loss = kl_loss + 0.01 * amplitude_regularization
             print(loss)
             loss.backward()
             optimizer.step()
