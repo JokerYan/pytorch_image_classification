@@ -128,7 +128,7 @@ def attack(config, model, test_loader, loss_func, logger):
                 int(torch.argmax(adv_output)), int(labels)))
 
             # post_train(config, model, adv_images, labels)
-            post_tuned_model = post_tune(config, model, adv_images)
+            post_tuned_model = post_tune(config, model, adv_images, labels)
             post_tuned_output = post_tuned_model(adv_images)
             # acc = cal_accuracy(normal_output, labels)
             # acc = cal_accuracy(adv_output, labels)
@@ -165,9 +165,7 @@ def post_train(config, model, images, targets):
             input()
 
 
-
-
-def post_tune(config, model, images):
+def post_tune(config, model, images, targets):
     alpha = 2 / 255
     epsilon = 8 / 255
     loss_func = nn.CrossEntropyLoss()
@@ -185,7 +183,7 @@ def post_tune(config, model, images):
         # targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(original_output))
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
         for i in range(100):
-            targets = torch.randint(0, 9, [len(images)]).to(device)
+            # targets = torch.randint(0, 9, [len(images)]).to(device)
             optimizer.zero_grad()
             # noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
             # noise_inputs = images.detach() + noise
