@@ -203,7 +203,8 @@ def post_tune(config, model, images):
             # print(targets[0], torch.argmax(outputs).item())
             print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
 
-            input_grad_norm = torch.autograd.grad(torch.sum(outputs), adv_inputs)[0]
+            input_grad = torch.autograd.grad(torch.sum(outputs), adv_inputs)[0]
+            input_grad_norm = torch.norm(input_grad, p=2)
             loss = input_grad_norm
             # loss = loss_func(outputs, targets)
             # loss = nn.KLDivLoss(size_average=False, log_target=True)(
