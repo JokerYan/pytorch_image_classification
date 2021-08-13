@@ -176,15 +176,16 @@ def post_tune(config, model, images):
     original_output = fix_model(images)
     with torch.enable_grad():
         # optimizer = create_optimizer(config, model)
-        optimizer = torch.optim.SGD(lr=0.1,
+        optimizer = torch.optim.SGD(lr=0.001,
                                     params=model.parameters(),
                                     momentum=config.train.momentum,
                                     nesterov=config.train.nesterov)
         # targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(original_output))
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
         for _ in range(10):
-            targets = torch.randint(0, 9, [len(images)]).to(device)
-            for _ in range(10):
+            outputs_list = []
+            for _ in range(2):
+                targets = torch.randint(0, 9, [len(images)]).to(device)
                 optimizer.zero_grad()
                 # noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
                 # noise_inputs = images.detach() + noise
@@ -201,22 +202,19 @@ def post_tune(config, model, images):
                 adv_inputs = attack_model(images, targets)
                 adv_inputs.requires_grad = True
                 outputs = model(adv_inputs)
-                # print(targets[0], torch.argmax(outputs).item())
-                print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
+                print(targets[0], outputs)
+                outputs_list.append(outputs)
+                # print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
 
-                input_grad = torch.autograd.grad(torch.sum(outputs), adv_inputs, only_inputs=False)[0]
-                input_grad_norm = torch.norm(input_grad, p=2)
-                input_grad_norm.requires_grad = True
-                loss = input_grad_norm
-                # loss = loss_func(outputs, targets)
-                # loss = nn.KLDivLoss(size_average=False, log_target=True)(
-                #     torch.log_softmax(outputs, dim=1),
-                #     torch.log_softmax(original_output, dim=1)
-                # )
-                print(loss)
-                loss.backward()
-                optimizer.step()
-                input()
+            # loss = loss_func(outputs, targets)
+            loss = nn.KLDivLoss(size_average=False, log_target=True)(
+                torch.log_softmax(outputs_list[0], dim=1),
+                torch.log_softmax(outputs_list[1], dim=1)
+            )
+            print(loss)
+            loss.backward()
+            optimizer.step()
+            input()
 
     return model
 
