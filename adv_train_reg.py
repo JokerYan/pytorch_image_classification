@@ -128,7 +128,7 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
 
         # generate fgsm adv examples
         delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
-        noise_inputs = data + delta
+        noise_inputs = data.detach() + delta
         noise_inputs.requires_grad = True
         noise_outputs = model(noise_inputs)
 
