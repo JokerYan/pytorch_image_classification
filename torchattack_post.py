@@ -203,7 +203,7 @@ def post_tune(config, model, images):
             # print(targets[0], torch.argmax(outputs).item())
             print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
 
-            input_grad = torch.autograd.grad(torch.sum(outputs), adv_inputs)[0]
+            input_grad = torch.autograd.grad(torch.sum(outputs), adv_inputs, only_inputs=False)[0]
             input_grad_norm = torch.norm(input_grad, p=2)
             input_grad_norm.requires_grad = True
             loss = input_grad_norm
