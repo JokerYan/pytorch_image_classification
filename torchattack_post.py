@@ -183,8 +183,8 @@ def post_tune(config, model, images):
         # targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(original_output))
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
         for _ in range(10):
+            targets = torch.randint(0, 9, [len(images)]).to(device)
             for _ in range(10):
-                targets = torch.randint(0, 9, [len(images)]).to(device)
                 optimizer.zero_grad()
                 # noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
                 # noise_inputs = images.detach() + noise
