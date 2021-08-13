@@ -110,10 +110,10 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
     acc1_meter = AverageMeter()
     acc5_meter = AverageMeter()
     start = time.time()
-    for _ in range(2):
-        for step, (data, targets) in enumerate(train_loader):
-            step += 1
-            global_step += 1
+    for step, (data, targets) in enumerate(train_loader):
+        step += 1
+        global_step += 1
+        for _ in range(2):
 
             if get_rank() == 0 and step == 1:
                 if config.tensorboard.train_images:
