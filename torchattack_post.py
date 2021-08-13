@@ -173,12 +173,14 @@ def post_tune(config, model, images):
     loss_func = nn.CrossEntropyLoss()
     device = torch.device(config.device)
     model = copy.deepcopy(model)
-    original_output = model(images)
+    fix_model = copy.deepcopy(model)
+    original_output = fix_model(images)
     with torch.enable_grad():
         # optimizer = create_optimizer(config, model)
-        optimizer = torch.optim.SGD(lr=0.001, params=model.parameters())
-        # for g in optimizer.param_groups:
-        #     g['lr'] = 0.00001
+        optimizer = torch.optim.SGD(lr=0.001,
+                                    params=model.parameters(),
+                                    momentum=config.train.momentum,
+                                    nesterov=config.train.nesterov)
         # targets = torch.randint(0, 9, [len(images)]).to(device)
         targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(original_output))
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
@@ -201,7 +203,11 @@ def post_tune(config, model, images):
             # print(targets[0], torch.argmax(outputs).item())
             print(targets, outputs)
 
-            loss = loss_func(outputs, targets)
+            # loss = loss_func(outputs, targets)
+            loss = nn.KLDivLoss(size_average=False)(
+                torch.softmax(outputs, dim=1),
+                torch.softmax(original_output, dim=1)
+            )
             print(loss)
             loss.backward()
             optimizer.step()
