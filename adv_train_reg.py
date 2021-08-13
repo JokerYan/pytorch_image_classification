@@ -141,7 +141,7 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
 
         optimizer.zero_grad()
 
-        # normal_output = model(data)
+        normal_output = model(data)
         adv_inputs = data.detach() + delta.detach()
         adv_outputs = model(adv_inputs)
 
@@ -149,11 +149,12 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
         noise_inputs.requires_grad = False
         adv_inputs.requires_grad = False
 
-        natural_loss = loss_func(noise_outputs, targets)
+        natural_loss = loss_func(data, targets)
         batch_size = len(data)
-        robust_loss = (1.0 / batch_size) * criterion_kl(torch.log_softmax(adv_outputs, dim=1),
-                                                        torch.softmax(noise_outputs, dim=1))
-        loss = natural_loss + 6 * robust_loss
+        # robust_loss = (1.0 / batch_size) * criterion_kl(torch.log_softmax(adv_outputs, dim=1),
+        #                                                 torch.softmax(normal_output, dim=1))
+        # loss = natural_loss + 6 * robust_loss
+        loss = natural_loss
         loss.backward()
         optimizer.step()
 
