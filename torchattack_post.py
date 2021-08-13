@@ -153,7 +153,7 @@ def post_train(config, model, images, targets):
     loss_func = nn.CrossEntropyLoss()
     device = torch.device(config.device)
     model = copy.deepcopy(model)
-    optimizer = torch.optim.SGD(lr=0.01, params=model.parameters())
+    optimizer = torch.optim.SGD(lr=0.001, params=model.parameters())
     with torch.enable_grad():
         for i in range(10):
             optimizer.zero_grad()
