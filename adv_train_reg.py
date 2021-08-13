@@ -140,12 +140,14 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
         delta.clamp_(-epsilon, epsilon)
 
         optimizer.zero_grad()
-        data.requires_grad = False
-        noise_inputs.requires_grad = False
 
         normal_output = model(data)
         adv_inputs = data.detach() + delta.detach()
         adv_outputs = model(adv_inputs)
+
+        data.requires_grad = False
+        noise_inputs.requires_grad = False
+        adv_inputs.requires_grad = False
 
         natural_loss = loss_func(noise_outputs, targets)
         batch_size = len(normal_output)
