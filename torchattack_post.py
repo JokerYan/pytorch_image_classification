@@ -130,6 +130,7 @@ def attack(config, model, test_loader, loss_func, logger):
             # post_train(config, model, adv_images, labels)
             post_tuned_model = post_tune(config, model, adv_images)
             post_tuned_output = post_tuned_model(adv_images)
+            print(post_tuned_output, labels)
             # acc = cal_accuracy(normal_output, labels)
             # acc = cal_accuracy(adv_output, labels)
             acc = cal_accuracy(post_tuned_output, labels)
@@ -139,7 +140,8 @@ def attack(config, model, test_loader, loss_func, logger):
                 success = cal_accuracy(adv_output, torch.Tensor([attack_target_class]).to(device))
             else:
                 success = 0
-            print("Batch {} attack success: {}\tdefense acc: {}".format(i, success, acc))
+            print("Batch {} attack success: {}\tdefense acc: {}\n".format(i, success, acc))
+            input()
             success_meter.update(success, 1)
             accuracy_meter.update(acc, 1)
         adv_image_list.append(adv_images)
@@ -216,7 +218,6 @@ def post_tune(config, model, images):
             print(loss)
             loss.backward()
             optimizer.step()
-            input()
 
     return model
 
