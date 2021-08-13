@@ -153,7 +153,9 @@ def post_tune(config, model, images):
     epsilon = 8 / 255
     loss_func = nn.CrossEntropyLoss()
     device = torch.device(config.device)
+    print(model(images))
     model = copy.deepcopy(model)
+    print(model(images))
     with torch.enable_grad():
         optimizer = create_optimizer(config, model)
         # for g in optimizer.param_groups:
@@ -171,7 +173,6 @@ def post_tune(config, model, images):
             # delta = delta + alpha * torch.sign(input_grad)
             # delta.clamp_(-epsilon, epsilon)
             #
-            # optimizer.zero_grad()
             # adv_inputs = images + delta
             adv_inputs = attack_model(noise_inputs, targets)
             outputs = model(adv_inputs)
