@@ -144,7 +144,7 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
         noise_inputs.requires_grad = False
 
         normal_output = model(data)
-        adv_inputs = data + delta
+        adv_inputs = data.detach() + delta
         adv_outputs = model(adv_inputs)
 
         natural_loss = loss_func(noise_outputs, targets)
