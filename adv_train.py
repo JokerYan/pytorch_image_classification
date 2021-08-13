@@ -110,128 +110,129 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
     acc1_meter = AverageMeter()
     acc5_meter = AverageMeter()
     start = time.time()
-    for step, (data, targets) in enumerate(train_loader):
-        step += 1
-        global_step += 1
+    for _ in range(2):
+        for step, (data, targets) in enumerate(train_loader):
+            step += 1
+            global_step += 1
 
-        if get_rank() == 0 and step == 1:
-            if config.tensorboard.train_images:
-                image = torchvision.utils.make_grid(data,
-                                                    normalize=True,
-                                                    scale_each=True)
-                tensorboard_writer.add_image('Train/Image', image, epoch)
+            if get_rank() == 0 and step == 1:
+                if config.tensorboard.train_images:
+                    image = torchvision.utils.make_grid(data,
+                                                        normalize=True,
+                                                        scale_each=True)
+                    tensorboard_writer.add_image('Train/Image', image, epoch)
 
-        data = data.to(device,
-                       non_blocking=config.train.dataloader.non_blocking)
-        targets = send_targets_to_device(config, targets, device)
+            data = data.to(device,
+                           non_blocking=config.train.dataloader.non_blocking)
+            targets = send_targets_to_device(config, targets, device)
 
-        # generate fgsm adv examples
-        delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
-        noise_inputs = data + delta
-        noise_inputs.requires_grad = True
-        noise_outputs = model(noise_inputs)
+            # generate fgsm adv examples
+            delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
+            noise_inputs = data + delta
+            noise_inputs.requires_grad = True
+            noise_outputs = model(noise_inputs)
 
-        if attack_target_class is None:
-            # un-targeted attack
-            loss = loss_func(noise_outputs, targets)  # loss to be maximized
-            input_grad = torch.autograd.grad(loss, noise_inputs)[0]
-            delta = delta + alpha * torch.sign(input_grad)
-            delta.clamp_(-epsilon, epsilon)
-        elif attack_target_class == -1:
-            # random targeted attack
-            attack_target = torch.remainder(torch.randint(1, 9, targets.shape).cuda() + targets, 10)
+            if attack_target_class is None:
+                # un-targeted attack
+                loss = loss_func(noise_outputs, targets)  # loss to be maximized
+                input_grad = torch.autograd.grad(loss, noise_inputs)[0]
+                delta = delta + alpha * torch.sign(input_grad)
+                delta.clamp_(-epsilon, epsilon)
+            elif attack_target_class == -1:
+                # random targeted attack
+                attack_target = torch.remainder(torch.randint(1, 9, targets.shape).cuda() + targets, 10)
 
-            loss = -1 * loss_func(noise_outputs, attack_target)  # loss to be minimized
-            input_grad = torch.autograd.grad(loss, noise_inputs)[0]
-            delta = delta + alpha * torch.sign(input_grad)
-            delta.clamp_(-epsilon, epsilon)
-        else:
-            # targeted attack
-            attack_target = torch.ones_like(targets) * attack_target_class
-            # avoid target == attack target
-            attack_target[targets == attack_target] = (attack_target_class + 1) % config.dataset.n_classes
+                loss = -1 * loss_func(noise_outputs, attack_target)  # loss to be minimized
+                input_grad = torch.autograd.grad(loss, noise_inputs)[0]
+                delta = delta + alpha * torch.sign(input_grad)
+                delta.clamp_(-epsilon, epsilon)
+            else:
+                # targeted attack
+                attack_target = torch.ones_like(targets) * attack_target_class
+                # avoid target == attack target
+                attack_target[targets == attack_target] = (attack_target_class + 1) % config.dataset.n_classes
 
-            loss = -1 * loss_func(noise_outputs, attack_target)  # loss to be minimized
-            input_grad = torch.autograd.grad(loss, noise_inputs)[0]
-            delta = delta + alpha * torch.sign(input_grad)
-            delta.clamp_(-epsilon, epsilon)
+                loss = -1 * loss_func(noise_outputs, attack_target)  # loss to be minimized
+                input_grad = torch.autograd.grad(loss, noise_inputs)[0]
+                delta = delta + alpha * torch.sign(input_grad)
+                delta.clamp_(-epsilon, epsilon)
 
-        optimizer.zero_grad()
-        adv_inputs = data + delta
-        outputs = model(adv_inputs)
+            optimizer.zero_grad()
+            adv_inputs = data + delta
+            outputs = model(adv_inputs)
 
-        loss = loss_func(outputs, targets)
-        loss.backward()
-        optimizer.step()
+            loss = loss_func(outputs, targets)
+            loss.backward()
+            optimizer.step()
 
-        acc1, acc5 = compute_accuracy(config,
-                                      outputs,
-                                      targets,
-                                      augmentation=True,
-                                      topk=(1, 5))
+            acc1, acc5 = compute_accuracy(config,
+                                          outputs,
+                                          targets,
+                                          augmentation=True,
+                                          topk=(1, 5))
 
-        if config.train.distributed:
-            loss_all_reduce = dist.all_reduce(loss,
-                                              op=dist.ReduceOp.SUM,
-                                              async_op=True)
-            acc1_all_reduce = dist.all_reduce(acc1,
-                                              op=dist.ReduceOp.SUM,
-                                              async_op=True)
-            acc5_all_reduce = dist.all_reduce(acc5,
-                                              op=dist.ReduceOp.SUM,
-                                              async_op=True)
-            loss_all_reduce.wait()
-            acc1_all_reduce.wait()
-            acc5_all_reduce.wait()
-            loss.div_(dist.get_world_size())
-            acc1.div_(dist.get_world_size())
-            acc5.div_(dist.get_world_size())
+            if config.train.distributed:
+                loss_all_reduce = dist.all_reduce(loss,
+                                                  op=dist.ReduceOp.SUM,
+                                                  async_op=True)
+                acc1_all_reduce = dist.all_reduce(acc1,
+                                                  op=dist.ReduceOp.SUM,
+                                                  async_op=True)
+                acc5_all_reduce = dist.all_reduce(acc5,
+                                                  op=dist.ReduceOp.SUM,
+                                                  async_op=True)
+                loss_all_reduce.wait()
+                acc1_all_reduce.wait()
+                acc5_all_reduce.wait()
+                loss.div_(dist.get_world_size())
+                acc1.div_(dist.get_world_size())
+                acc5.div_(dist.get_world_size())
 
-        loss = loss.item()
-        acc1 = acc1.item()
-        acc5 = acc5.item()
+            loss = loss.item()
+            acc1 = acc1.item()
+            acc5 = acc5.item()
 
-        num = data.size(0)
-        loss_meter.update(loss, num)
-        acc1_meter.update(acc1, num)
-        acc5_meter.update(acc5, num)
+            num = data.size(0)
+            loss_meter.update(loss, num)
+            acc1_meter.update(acc1, num)
+            acc5_meter.update(acc5, num)
 
-        if torch.cuda.is_available():
-            torch.cuda.synchronize()
+            if torch.cuda.is_available():
+                torch.cuda.synchronize()
+
+            if get_rank() == 0:
+                if step % config.train.log_period == 0 or step == len(
+                        train_loader):
+                    logger.info(
+                        f'Epoch {epoch} '
+                        f'Step {step}/{len(train_loader)} '
+                        f'lr {scheduler.get_last_lr()[0]:.6f} '
+                        f'loss {loss_meter.val:.4f} ({loss_meter.avg:.4f}) '
+                        f'acc@1 {acc1_meter.val:.4f} ({acc1_meter.avg:.4f}) '
+                        f'acc@5 {acc5_meter.val:.4f} ({acc5_meter.avg:.4f})')
+
+                    tensorboard_writer2.add_scalar('Train/RunningLoss',
+                                                   loss_meter.avg, global_step)
+                    tensorboard_writer2.add_scalar('Train/RunningAcc1',
+                                                   acc1_meter.avg, global_step)
+                    tensorboard_writer2.add_scalar('Train/RunningAcc5',
+                                                   acc5_meter.avg, global_step)
+                    tensorboard_writer2.add_scalar('Train/RunningLearningRate',
+                                                   scheduler.get_last_lr()[0],
+                                                   global_step)
+
+            scheduler.step()
 
         if get_rank() == 0:
-            if step % config.train.log_period == 0 or step == len(
-                    train_loader):
-                logger.info(
-                    f'Epoch {epoch} '
-                    f'Step {step}/{len(train_loader)} '
-                    f'lr {scheduler.get_last_lr()[0]:.6f} '
-                    f'loss {loss_meter.val:.4f} ({loss_meter.avg:.4f}) '
-                    f'acc@1 {acc1_meter.val:.4f} ({acc1_meter.avg:.4f}) '
-                    f'acc@5 {acc5_meter.val:.4f} ({acc5_meter.avg:.4f})')
+            elapsed = time.time() - start
+            logger.info(f'Elapsed {elapsed:.2f}')
 
-                tensorboard_writer2.add_scalar('Train/RunningLoss',
-                                               loss_meter.avg, global_step)
-                tensorboard_writer2.add_scalar('Train/RunningAcc1',
-                                               acc1_meter.avg, global_step)
-                tensorboard_writer2.add_scalar('Train/RunningAcc5',
-                                               acc5_meter.avg, global_step)
-                tensorboard_writer2.add_scalar('Train/RunningLearningRate',
-                                               scheduler.get_last_lr()[0],
-                                               global_step)
-
-        scheduler.step()
-
-    if get_rank() == 0:
-        elapsed = time.time() - start
-        logger.info(f'Elapsed {elapsed:.2f}')
-
-        tensorboard_writer.add_scalar('Train/Loss', loss_meter.avg, epoch)
-        tensorboard_writer.add_scalar('Train/Acc1', acc1_meter.avg, epoch)
-        tensorboard_writer.add_scalar('Train/Acc5', acc5_meter.avg, epoch)
-        tensorboard_writer.add_scalar('Train/Time', elapsed, epoch)
-        tensorboard_writer.add_scalar('Train/LearningRate',
-                                      scheduler.get_last_lr()[0], epoch)
+            tensorboard_writer.add_scalar('Train/Loss', loss_meter.avg, epoch)
+            tensorboard_writer.add_scalar('Train/Acc1', acc1_meter.avg, epoch)
+            tensorboard_writer.add_scalar('Train/Acc5', acc5_meter.avg, epoch)
+            tensorboard_writer.add_scalar('Train/Time', elapsed, epoch)
+            tensorboard_writer.add_scalar('Train/LearningRate',
+                                          scheduler.get_last_lr()[0], epoch)
 
 
 def validate(epoch, config, model, loss_func, val_loader, logger,
