@@ -127,12 +127,12 @@ def attack(config, model, test_loader, loss_func, logger):
                 int(torch.argmax(normal_output)),
                 int(torch.argmax(adv_output)), int(labels)))
 
-            post_train(config, model, adv_images, labels)
-            # post_tuned_model = post_tune(config, model, adv_images)
-            # post_tuned_output = post_tuned_model(adv_images)
+            # post_train(config, model, adv_images, labels)
+            post_tuned_model = post_tune(config, model, adv_images)
+            post_tuned_output = post_tuned_model(adv_images)
             # acc = cal_accuracy(normal_output, labels)
-            acc = cal_accuracy(adv_output, labels)
-            # acc = cal_accuracy(post_tuned_output, labels)
+            # acc = cal_accuracy(adv_output, labels)
+            acc = cal_accuracy(post_tuned_output, labels)
             if attack_target_class == -1:
                 success = cal_accuracy(adv_output, attack_target_list[-1])
             elif attack_target_class is not None:
@@ -173,12 +173,14 @@ def post_tune(config, model, images):
     loss_func = nn.CrossEntropyLoss()
     device = torch.device(config.device)
     model = copy.deepcopy(model)
+    original_output = model(images)
     with torch.enable_grad():
         # optimizer = create_optimizer(config, model)
         optimizer = torch.optim.SGD(lr=0.1, params=model.parameters())
         # for g in optimizer.param_groups:
         #     g['lr'] = 0.00001
-        targets = torch.randint(0, 9, [len(images)]).to(device)
+        # targets = torch.randint(0, 9, [len(images)]).to(device)
+        targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(original_output))
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
         for i in range(100):
             optimizer.zero_grad()
