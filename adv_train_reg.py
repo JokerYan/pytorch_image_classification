@@ -4,8 +4,6 @@ import argparse
 import pathlib
 import time
 
-from torch.autograd.grad_mode import F
-
 from custom_loss.llv_loss import LocalLipschitzValueLoss
 from pytorch_image_classification.models import create_input_sigmoid_model
 
@@ -148,8 +146,8 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
 
         natural_loss = loss_func(noise_outputs, targets)
         batch_size = len(normal_output)
-        robust_loss = (1.0 / batch_size) * criterion_kl(F.log_softmax(adv_outputs, dim=1),
-                                                        F.softmax(normal_output, dim=1))
+        robust_loss = (1.0 / batch_size) * criterion_kl(torch.log_softmax(adv_outputs, dim=1),
+                                                        torch.softmax(normal_output, dim=1))
         loss = natural_loss + 6 * robust_loss
         loss.backward()
         optimizer.step()
