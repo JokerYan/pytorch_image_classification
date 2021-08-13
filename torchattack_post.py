@@ -133,7 +133,7 @@ def attack(config, model, test_loader, loss_func, logger):
             print(post_tuned_output, labels)
             # acc = cal_accuracy(normal_output, labels)
             # acc = cal_accuracy(adv_output, labels)
-            acc = cal_accuracy(post_tuned_output, labels)
+            acc = cal_accuracy(torch.argmax(post_tuned_output), labels)
             if attack_target_class == -1:
                 success = cal_accuracy(adv_output, attack_target_list[-1])
             elif attack_target_class is not None:
@@ -186,8 +186,8 @@ def post_tune(config, model, images):
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
         for _ in range(10):
             outputs_list = []
+            targets = torch.randint(0, 9, [len(images)]).to(device)
             for _ in range(2):
-                targets = torch.randint(0, 9, [len(images)]).to(device)
                 optimizer.zero_grad()
                 # noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
                 # noise_inputs = images.detach() + noise
