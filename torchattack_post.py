@@ -178,7 +178,7 @@ def post_tune(config, model, images):
     original_output = fix_model(images)
     with torch.enable_grad():
         # optimizer = create_optimizer(config, model)
-        optimizer = torch.optim.SGD(lr=0.001,
+        optimizer = torch.optim.SGD(lr=0.0001,
                                     params=model.parameters(),
                                     momentum=config.train.momentum,
                                     nesterov=config.train.nesterov)
@@ -215,7 +215,7 @@ def post_tune(config, model, images):
             )
             amplitude_regularization = torch.sum(torch.abs(outputs_list[0])) + torch.sum(torch.abs(outputs_list[0]))
             loss = kl_loss + 0.01 * amplitude_regularization
-            print(loss)
+            print(loss, kl_loss, 0.01 * amplitude_regularization)
             loss.backward()
             optimizer.step()
 
