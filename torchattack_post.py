@@ -214,8 +214,8 @@ def post_tune(config, model, images):
                 torch.log_softmax(outputs_list[1], dim=1)
             )
             amplitude_regularization = torch.sum(torch.abs(outputs_list[0])) + torch.sum(torch.abs(outputs_list[0]))
-            loss = kl_loss + 0.01 * amplitude_regularization
-            print(loss, kl_loss, 0.01 * amplitude_regularization)
+            loss = kl_loss + 0.0001 * amplitude_regularization
+            print(loss, kl_loss, 0.0001 * amplitude_regularization)
             loss.backward()
             optimizer.step()
 
