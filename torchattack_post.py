@@ -49,6 +49,8 @@ def load_config(options=None):
     config = get_default_config()
     config.merge_from_file(args.config)
     config.merge_from_list(args.options)
+    print(config.train.batch_size)
+    print(config.test.batch_size)
     if options:
         config.merge_from_list(options)
     if args.target is not None:
@@ -105,8 +107,6 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
     )
 
     for i, (data, labels) in enumerate(test_loader):
-        print(data.shape)
-        print(labels.shape)
         if i == 100:
             break
         data = data.to(device)
