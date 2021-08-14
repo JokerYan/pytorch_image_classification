@@ -178,12 +178,13 @@ def post_tune(config, model, images):
     loss_func = nn.CrossEntropyLoss()
     device = torch.device(config.device)
     model = copy.deepcopy(model)
-
     fix_model = copy.deepcopy(model)
+
+    images = images.detach() + (torch.rand_like(images.detach()) * 2 - 1) * epsilon
     original_output = fix_model(images)
     with torch.enable_grad():
         # optimizer = create_optimizer(config, model)
-        optimizer = torch.optim.SGD(lr=0.001,
+        optimizer = torch.optim.SGD(lr=0.0001,
                                     params=model.parameters(),
                                     momentum=config.train.momentum,
                                     nesterov=config.train.nesterov)
