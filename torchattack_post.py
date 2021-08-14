@@ -130,7 +130,7 @@ def attack(config, model, test_loader, loss_func, logger):
                 int(torch.argmax(adv_output)), int(labels)))
 
             # post_train(config, model, adv_images, labels)
-            post_tuned_model = post_tune(config, model, adv_images)
+            post_tuned_model = post_tune(config, model, data)
             post_tuned_output = post_tuned_model(adv_images)
             print()
             print("adv ", adv_output)
@@ -184,7 +184,7 @@ def post_tune(config, model, images):
     original_output = fix_model(images)
     with torch.enable_grad():
         # optimizer = create_optimizer(config, model)
-        optimizer = torch.optim.SGD(lr=0.001,
+        optimizer = torch.optim.SGD(lr=0.0001,
                                     params=model.parameters(),
                                     momentum=config.train.momentum,
                                     nesterov=config.train.nesterov)
