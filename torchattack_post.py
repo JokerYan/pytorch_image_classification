@@ -146,7 +146,7 @@ def attack(config, model, test_loader, loss_func, logger):
             else:
                 success = 0
             print("Batch {} attack success: {}\tdefense acc: {}\n".format(i, success, acc))
-            input()
+            # input()
             success_meter.update(success, 1)
             accuracy_meter.update(acc, 1)
         adv_image_list.append(adv_images)
@@ -194,11 +194,11 @@ def post_tune(config, model, images):
         random.shuffle(target_list)
         targets_list = torch.Tensor(target_list).long().to(device)
         loss_list = torch.Tensor([0 for _ in range(20)])
-        for i in range(20):
-            outputs_list = []
-            targets = targets_list[i % len(targets_list)].reshape([1])
-            print(targets)
-            for _ in range(1):
+        for _ in range(3):
+            for i in range(10):
+                outputs_list = []
+                targets = targets_list[i % len(targets_list)].reshape([1])
+                print(targets)
                 # targets = torch.randint(0, 9, [len(images)]).to(device)
                 optimizer.zero_grad()
                 noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
@@ -232,12 +232,12 @@ def post_tune(config, model, images):
             # amplitude_regularization = torch.sum(torch.abs(outputs_list[0])) + torch.sum(torch.abs(outputs_list[0]))
             # loss = kl_loss + 0 * amplitude_regularization
             # print(loss, kl_loss, 0 * amplitude_regularization)
-        total_loss = torch.mean(torch.Tensor(loss_list))
-        # total_loss.requires_grad = True
-        loss = total_loss
-        print(loss)
-        loss.backward()
-        optimizer.step()
+            total_loss = torch.mean(torch.Tensor(loss_list))
+            # total_loss.requires_grad = True
+            loss = total_loss
+            print(loss)
+            loss.backward()
+            optimizer.step()
 
     return model
 
