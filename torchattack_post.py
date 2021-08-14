@@ -141,7 +141,7 @@ def attack(config, model, test_loader, loss_func, logger):
             else:
                 success = 0
             print("Batch {} attack success: {}\tdefense acc: {}\n".format(i, success, acc))
-            input()
+            # input()
             success_meter.update(success, 1)
             accuracy_meter.update(acc, 1)
         adv_image_list.append(adv_images)
@@ -185,11 +185,11 @@ def post_tune(config, model, images):
         # targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(original_output))
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
         targets_list = torch.topk(original_output, k=3).indices.squeeze().detach()
-        for i in range(5):
+        for i in range(10):
             outputs_list = []
             targets = targets_list[i % len(targets_list)].reshape([1])
             print(targets)
-            for _ in range(2):
+            for _ in range(1):
                 # targets = torch.randint(0, 9, [len(images)]).to(device)
                 optimizer.zero_grad()
                 noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
