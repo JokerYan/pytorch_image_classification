@@ -204,7 +204,7 @@ def post_tune(config, model, images):
                 # adv_inputs = attack_model(images, targets)
                 # adv_inputs.requires_grad = True
                 # outputs = model(adv_inputs)
-                print(targets[0], noise_outputs)
+                print(noise_outputs)
                 outputs_list.append(noise_outputs)
                 # print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
 
@@ -213,9 +213,11 @@ def post_tune(config, model, images):
                 torch.log_softmax(outputs_list[0], dim=1),
                 torch.log_softmax(outputs_list[1], dim=1)
             )
-            amplitude_regularization = torch.sum(torch.abs(outputs_list[0])) + torch.sum(torch.abs(outputs_list[0]))
-            loss = kl_loss + 0 * amplitude_regularization
-            print(loss, kl_loss, 0 * amplitude_regularization)
+            # amplitude_regularization = torch.sum(torch.abs(outputs_list[0])) + torch.sum(torch.abs(outputs_list[0]))
+            # loss = kl_loss + 0 * amplitude_regularization
+            # print(loss, kl_loss, 0 * amplitude_regularization)
+            loss = kl_loss
+            print(kl_loss)
             loss.backward()
             optimizer.step()
 
