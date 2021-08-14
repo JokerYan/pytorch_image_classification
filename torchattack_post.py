@@ -212,8 +212,8 @@ def post_tune(config, model, val_images, train_loader):
                 # targets = torch.randint(0, 9, [len(images)]).to(device)
                 targets = train_label.to(device)
                 optimizer.zero_grad()
-                noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
-                noise_inputs = (images.detach() + noise).to(device)
+                noise = ((torch.rand_like(images.detach()) * 2 - 1) * epsilon).to(device)  # uniform rand from [-eps, eps]
+                noise_inputs = images.detach() + noise
                 noise_inputs.requires_grad = True
                 noise_outputs = model(noise_inputs)
                 noise_loss = loss_func(noise_outputs, targets)
