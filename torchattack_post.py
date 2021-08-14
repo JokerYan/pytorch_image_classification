@@ -105,7 +105,6 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
     )
 
     for i, (data, labels) in enumerate(test_loader):
-        print(config.test.batch_size)
         if i == 100:
             break
         data = data.to(device)
@@ -252,7 +251,7 @@ def post_tune(config, model, images, train_loader):
 
 
 def main():
-    config = load_config(["train.batch_size", 1, "test.batch_size", 1])
+    config = load_config(["train.batch_size", 1, "validation.batch_size", 1, "test.batch_size", 1])
 
     if config.test.output_dir is None:
         output_dir = pathlib.Path(config.test.checkpoint).parent
