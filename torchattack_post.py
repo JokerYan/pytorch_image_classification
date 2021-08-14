@@ -190,13 +190,13 @@ def post_tune(config, model, images, train_loader):
     # images = images.detach() + torch.sign(torch.rand_like(images.detach()) * 2 - 1) * epsilon
 
     original_output = fix_model(images)
-    print('original', original_output)
+    print('original', torch.argmax(original_output), original_output)
 
     # re-position start
     attack_model = torchattacks.PGD(model, eps=8/255, alpha=8/255, steps=1)
-    images = attack_model(images, torch.argmax(images))
+    images = attack_model(images, torch.argmax(images).reshape(1))
     start_output = fix_model(images)
-    print('start', start_output)
+    print('start', torch.argmax(start_output), start_output)
 
     with torch.enable_grad():
         # optimizer = create_optimizer(config, model)
