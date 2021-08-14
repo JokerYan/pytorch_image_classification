@@ -216,6 +216,7 @@ def post_tune(config, model, val_images, train_loader):
                 noise_inputs = images.detach() + noise
                 noise_inputs.requires_grad = True
                 noise_outputs = model(noise_inputs)
+                print(noise_outputs, targets)
                 noise_loss = loss_func(noise_outputs, targets)
 
                 # loss = loss_func(noise_outputs, targets)  # loss to be maximized
