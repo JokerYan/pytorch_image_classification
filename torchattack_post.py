@@ -187,7 +187,7 @@ def post_tune(config, model, images):
         targets_list = torch.topk(original_output, k=3).indices.squeeze().detach()
         for i in range(5):
             outputs_list = []
-            targets = targets_list[i % len(targets_list)]
+            targets = targets_list[i % len(targets_list)].reshape([1])
             print(targets)
             for _ in range(2):
                 # targets = torch.randint(0, 9, [len(images)]).to(device)
