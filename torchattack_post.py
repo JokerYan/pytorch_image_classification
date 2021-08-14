@@ -184,7 +184,7 @@ def post_tune(config, model, images):
     original_output = fix_model(images)
     with torch.enable_grad():
         # optimizer = create_optimizer(config, model)
-        optimizer = torch.optim.SGD(lr=0.0001,
+        optimizer = torch.optim.SGD(lr=0.001,
                                     params=model.parameters(),
                                     momentum=config.train.momentum,
                                     nesterov=config.train.nesterov)
@@ -194,7 +194,7 @@ def post_tune(config, model, images):
         target_list = [i for i in range(10)]
         random.shuffle(target_list)
         targets_list = torch.Tensor(target_list).long().to(device)
-        for _ in range(5):
+        for _ in range(3):
             loss_list = torch.Tensor([0 for _ in range(10)])
             for i in range(10):
                 outputs_list = []
