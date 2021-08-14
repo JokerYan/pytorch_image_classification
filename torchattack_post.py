@@ -172,9 +172,9 @@ def post_train(config, model, images, targets):
             input()
 
 
-def merge_images(train_images, val_images, channel, device):
-    image = train_images.to(device)
-    image[0][channel] = 0.5 * image[0][channel].to(device) + 0.5 * val_images[0][channel].to(device)
+def merge_images(train_images, val_images, device):
+    image = 0.8 * train_images.to(device) + 0.2 * val_images.to(device)
+    # image[0][channel] = 0.5 * image[0][channel].to(device) + 0.5 * val_images[0][channel].to(device)
     return image
 
 
@@ -201,11 +201,11 @@ def post_tune(config, model, val_images, train_loader):
         random.shuffle(target_list)
         targets_list = torch.Tensor(target_list).long().to(device)
 
-        train_images, train_label = next(iter(train_loader))
-        for c in range(3):
-            images = merge_images(train_images, val_images, c, device)
-            loss_list = torch.Tensor([0 for _ in range(10)])
-            for i in range(10):
+        for _ in range(5):
+            loss_list = torch.Tensor([0 for _ in range(5)])
+            for i in range(5):
+                train_images, train_label = next(iter(train_loader))
+                images = merge_images(train_images, val_images, device)
                 outputs_list = []
                 # targets = targets_list[i % len(targets_list)].reshape([1])
                 # targets = targets_list[1].reshape([1])  # guess target
