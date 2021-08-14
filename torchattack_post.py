@@ -4,6 +4,7 @@ import argparse
 import copy
 import pathlib
 import time
+import random
 
 import numpy as np
 import torch
@@ -184,9 +185,11 @@ def post_tune(config, model, images):
                                     nesterov=config.train.nesterov)
         # targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(original_output))
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
-        targets_list = torch.topk(original_output, k=3).indices.squeeze().detach()
-        for i in range(10):
+        # targets_list = torch.topk(original_output, k=3).indices.squeeze().detach()
+        targets_list = torch.Tensor(random.shuffle([i for i in range(10)]))
+        for i in range(20):
             outputs_list = []
+            loss_list = []
             targets = targets_list[i % len(targets_list)].reshape([1])
             print(targets)
             for _ in range(1):
@@ -212,6 +215,7 @@ def post_tune(config, model, images):
                 print(int(targets.item()), outputs)
                 adv_loss = loss_func(outputs, targets)
                 outputs_list.append(outputs)
+                loss_list.append(torch.relu(adv_loss - noise_loss))
                 # print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
 
             # loss = loss_func(outputs, targets)
@@ -222,7 +226,7 @@ def post_tune(config, model, images):
             # amplitude_regularization = torch.sum(torch.abs(outputs_list[0])) + torch.sum(torch.abs(outputs_list[0]))
             # loss = kl_loss + 0 * amplitude_regularization
             # print(loss, kl_loss, 0 * amplitude_regularization)
-            loss = torch.relu(adv_loss - noise_loss)
+            loss = torch.sum(torch.Tensor(loss_list))
             print(loss)
             loss.backward()
             optimizer.step()
