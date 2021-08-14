@@ -130,7 +130,7 @@ def attack(config, model, test_loader, loss_func, logger):
                 int(torch.argmax(adv_output)), int(labels)))
 
             # post_train(config, model, adv_images, labels)
-            post_tuned_model = post_tune(config, model, adv_images)
+            post_tuned_model = post_tune(config, model, adv_images, labels)
             post_tuned_output = post_tuned_model(adv_images)
             print()
             print("adv ", adv_output)
@@ -172,7 +172,7 @@ def post_train(config, model, images, targets):
             input()
 
 
-def post_tune(config, model, images):
+def post_tune(config, model, images, targets):
     alpha = 2 / 255
     epsilon = 8 / 255
     loss_func = nn.CrossEntropyLoss()
@@ -188,7 +188,7 @@ def post_tune(config, model, images):
                                     params=model.parameters(),
                                     momentum=config.train.momentum,
                                     nesterov=config.train.nesterov)
-        targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(original_output))
+        # targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(original_output))
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
         # targets_list = torch.topk(original_output, k=3).indices.squeeze().detach()
         target_list = [i for i in range(10)]
