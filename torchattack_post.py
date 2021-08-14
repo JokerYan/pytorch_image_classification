@@ -49,6 +49,7 @@ def load_config(options=None):
     config = get_default_config()
     config.merge_from_file(args.config)
     config.merge_from_list(args.options)
+    print(args.options)
     print(config.train.batch_size)
     print(config.test.batch_size)
     if options:
