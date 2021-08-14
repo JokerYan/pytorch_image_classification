@@ -171,10 +171,14 @@ def post_train(config, model, images, targets):
             optimizer.step()
             input()
 
-def merge_images(train_images, val_images):
-    print(train_images.shape)
 
-def post_tune(config, model, images, train_loader):
+def merge_images(train_images, val_images, channel):
+    image = train_images
+    image[0][channel] = val_images[0][channel]
+    return image
+
+
+def post_tune(config, model, val_images, train_loader):
     alpha = 2 / 255
     epsilon = 8 / 255
     loss_func = nn.CrossEntropyLoss()
@@ -182,11 +186,8 @@ def post_tune(config, model, images, train_loader):
     model = copy.deepcopy(model)
     fix_model = copy.deepcopy(model)
 
-    train_images, train_label = next(iter(train_loader))
-    merge_images(train_images, images)
-
     # images = images.detach() + (torch.rand_like(images.detach()) * 2 - 1) * epsilon
-    original_output = fix_model(images)
+    original_output = fix_model(val_images)
     with torch.enable_grad():
         # optimizer = create_optimizer(config, model)
         optimizer = torch.optim.SGD(lr=0.0001,
@@ -195,17 +196,21 @@ def post_tune(config, model, images, train_loader):
                                     nesterov=config.train.nesterov)
         # targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(original_output))
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
-        targets_list = torch.topk(original_output, k=3).indices.squeeze().detach()
+        # targets_list = torch.topk(original_output, k=3).indices.squeeze().detach()
         target_list = [i for i in range(10)]
         random.shuffle(target_list)
         targets_list = torch.Tensor(target_list).long().to(device)
-        for _ in range(3):
+
+        train_images, train_label = next(iter(train_loader))
+        for c in range(3):
+            images = merge_images(train_images, val_images, c)
             loss_list = torch.Tensor([0 for _ in range(10)])
             for i in range(10):
                 outputs_list = []
                 # targets = targets_list[i % len(targets_list)].reshape([1])
-                targets = targets_list[1].reshape([1])  # guess target
+                # targets = targets_list[1].reshape([1])  # guess target
                 # targets = torch.randint(0, 9, [len(images)]).to(device)
+                targets = train_label
                 optimizer.zero_grad()
                 noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
                 noise_inputs = images.detach() + noise
