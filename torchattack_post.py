@@ -215,7 +215,6 @@ def post_tune(config, model, val_images, train_loader):
                 noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
                 noise_inputs = images.detach() + noise
                 noise_inputs.requires_grad = True
-                print(noise_inputs, targets)
                 noise_outputs = model(noise_inputs)
                 noise_loss = loss_func(noise_outputs, targets)
 
