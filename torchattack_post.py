@@ -190,7 +190,7 @@ def post_tune(config, model, val_images, train_loader):
     original_output = fix_model(val_images)
     with torch.enable_grad():
         # optimizer = create_optimizer(config, model)
-        optimizer = torch.optim.SGD(lr=0.1,
+        optimizer = torch.optim.SGD(lr=0.01,
                                     params=model.parameters(),
                                     momentum=config.train.momentum,
                                     nesterov=config.train.nesterov)
