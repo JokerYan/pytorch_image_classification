@@ -180,7 +180,7 @@ def post_tune(config, model, images):
     model = copy.deepcopy(model)
     fix_model = copy.deepcopy(model)
 
-    images = images.detach() + (torch.rand_like(images.detach()) * 2 - 1) * epsilon
+    # images = images.detach() + (torch.rand_like(images.detach()) * 2 - 1) * epsilon
     original_output = fix_model(images)
     with torch.enable_grad():
         # optimizer = create_optimizer(config, model)
@@ -271,7 +271,7 @@ def main():
                                     save_dir=output_dir)
         checkpointer.load(config.test.checkpoint)
 
-    test_loader = create_dataloader(config, is_train=False)
+    test_loader = create_dataloader(config, is_train=True)
     _, test_loss = create_loss(config)
 
     attack(config, model, test_loader, test_loss, logger)
