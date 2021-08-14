@@ -241,6 +241,9 @@ def post_tune(config, model, images, train_loader):
                 adv_inputs.requires_grad = True
                 outputs = fix_model(adv_inputs.detach())
                 adv_loss = loss_func(outputs, targets)
+
+                # update target
+                targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(outputs))
                 outputs_list.append(outputs)
                 normal_output = model(images.detach())
                 normal_loss = loss_func(normal_output, targets)
