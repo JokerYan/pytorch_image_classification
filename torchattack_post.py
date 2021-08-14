@@ -81,7 +81,7 @@ def random_target_function(images, labels):
     return attack_target
 
 
-def attack(config, model, test_loader, loss_func, logger):
+def attack(config, model, train_loader, test_loader, loss_func, logger):
     device = torch.device(config.device)
     print(torchattacks.__file__)
 
@@ -246,7 +246,7 @@ def post_tune(config, model, images):
 
 
 def main():
-    config = load_config(["test.batch_size", 1])
+    config = load_config(["train.batch_size", 1, "test.batch_size", 1])
 
     if config.test.output_dir is None:
         output_dir = pathlib.Path(config.test.checkpoint).parent
@@ -269,10 +269,10 @@ def main():
                                     save_dir=output_dir)
         checkpointer.load(config.test.checkpoint)
 
-    test_loader = create_dataloader(config, is_train=False)
+    train_loader, test_loader = create_dataloader(config, is_train=True)
     _, test_loss = create_loss(config)
 
-    attack(config, model, test_loader, test_loss, logger)
+    attack(config, model, train_loader, test_loader, test_loss, logger)
 
 
 if __name__ == '__main__':
