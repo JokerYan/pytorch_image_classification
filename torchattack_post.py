@@ -236,7 +236,7 @@ def post_tune(config, model, images, train_loader):
                 # delta.clamp_(-epsilon, epsilon)
                 #
                 # adv_inputs = images + delta
-                attack_model.set_mode_targeted_by_function(lambda image, label: targets)
+                # attack_model.set_mode_targeted_by_function(lambda image, label: targets)
                 adv_inputs = attack_model(images, targets)
                 adv_inputs.requires_grad = True
                 outputs = model(adv_inputs.detach())
