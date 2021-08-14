@@ -206,17 +206,16 @@ def post_tune(config, model, images):
                 noise_inputs = images.detach() + noise
                 noise_inputs.requires_grad = True
                 noise_outputs = model(noise_inputs)
-                noise_loss = -1 * loss_func(noise_outputs, targets)
+                noise_loss = loss_func(noise_outputs, targets)
 
-                #
                 # loss = loss_func(noise_outputs, targets)  # loss to be maximized
-                # input_grad = torch.autograd.grad(loss, noise_inputs)[0]
-                # # print(torch.mean(torch.abs(input_grad)))
-                # delta = noise + alpha * torch.sign(input_grad)
-                # delta.clamp_(-epsilon, epsilon)
-                #
-                # adv_inputs = images + delta
-                adv_inputs = attack_model(images, targets)
+                input_grad = torch.autograd.grad(-1 * loss, noise_inputs)[0]
+                # print(torch.mean(torch.abs(input_grad)))
+                delta = noise + alpha * torch.sign(input_grad)
+                delta.clamp_(-epsilon, epsilon)
+
+                adv_inputs = images + delta
+                # adv_inputs = attack_model(images, targets)
                 adv_inputs.requires_grad = True
                 outputs = model(adv_inputs.detach())
                 print(int(targets.item()), outputs)
