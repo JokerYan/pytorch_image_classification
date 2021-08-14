@@ -130,7 +130,7 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
                 int(torch.argmax(adv_output)), int(labels)))
 
             # post_train(config, model, adv_images, labels)
-            post_tuned_model = post_tune(config, model, adv_images)
+            post_tuned_model = post_tune(config, model, adv_images, train_loader)
             post_tuned_output = post_tuned_model(adv_images)
             print()
             print("adv ", adv_output)
@@ -171,14 +171,19 @@ def post_train(config, model, images, targets):
             optimizer.step()
             input()
 
+def merge_images(train_images, val_images):
+    print(train_images.shape)
 
-def post_tune(config, model, images):
+def post_tune(config, model, images, train_loader):
     alpha = 2 / 255
     epsilon = 8 / 255
     loss_func = nn.CrossEntropyLoss()
     device = torch.device(config.device)
     model = copy.deepcopy(model)
     fix_model = copy.deepcopy(model)
+
+    train_images, train_label = next(iter(train_loader))
+    merge_images(train_images, images)
 
     # images = images.detach() + (torch.rand_like(images.detach()) * 2 - 1) * epsilon
     original_output = fix_model(images)
