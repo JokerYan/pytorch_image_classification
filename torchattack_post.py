@@ -174,7 +174,7 @@ def post_train(config, model, images, targets):
 
 def merge_images(train_images, val_images, channel):
     image = train_images
-    image[0][channel] = val_images[0][channel]
+    # image[0][channel] = val_images[0][channel]
     return image
 
 
