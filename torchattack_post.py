@@ -130,7 +130,7 @@ def attack(config, model, test_loader, loss_func, logger):
                 int(torch.argmax(adv_output)), int(labels)))
 
             # post_train(config, model, adv_images, labels)
-            post_tuned_model = post_tune(config, model, adv_images, labels)
+            post_tuned_model = post_tune(config, model, adv_images)
             post_tuned_output = post_tuned_model(adv_images)
             print()
             print("adv ", adv_output)
@@ -172,7 +172,7 @@ def post_train(config, model, images, targets):
             input()
 
 
-def post_tune(config, model, images, targets):
+def post_tune(config, model, images):
     alpha = 2 / 255
     epsilon = 8 / 255
     loss_func = nn.CrossEntropyLoss()
@@ -190,7 +190,7 @@ def post_tune(config, model, images, targets):
                                     nesterov=config.train.nesterov)
         # targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(original_output))
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
-        # targets_list = torch.topk(original_output, k=3).indices.squeeze().detach()
+        targets_list = torch.topk(original_output, k=3).indices.squeeze().detach()
         target_list = [i for i in range(10)]
         random.shuffle(target_list)
         targets_list = torch.Tensor(target_list).long().to(device)
@@ -199,7 +199,7 @@ def post_tune(config, model, images, targets):
             for i in range(10):
                 outputs_list = []
                 # targets = targets_list[i % len(targets_list)].reshape([1])
-                # targets = targets_list[0].reshape([1])  # guess target
+                targets = targets_list[1].reshape([1])  # guess target
                 # targets = torch.randint(0, 9, [len(images)]).to(device)
                 optimizer.zero_grad()
                 noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
