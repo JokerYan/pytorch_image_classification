@@ -223,20 +223,21 @@ def post_tune(config, model, images, train_loader):
                 # targets = torch.randint(0, 9, [len(images)]).to(device)
                 # targets = train_label.to(device)
                 optimizer.zero_grad()
-                noise = ((torch.rand_like(images.detach()) * 2 - 1) * epsilon).to(device)  # uniform rand from [-eps, eps]
-                noise_inputs = images.detach() + noise
-                noise_inputs.requires_grad = True
-                noise_outputs = model(noise_inputs)
-                noise_loss = loss_func(noise_outputs, targets)
-
-                # loss = loss_func(noise_outputs, targets)  # loss to be maximized
-                input_grad = torch.autograd.grad(noise_loss, noise_inputs)[0]
-                # print(torch.mean(torch.abs(input_grad)))
-                delta = noise - alpha * torch.sign(input_grad)
-                delta.clamp_(-epsilon, epsilon)
-
-                adv_inputs = images + delta
-                # adv_inputs = attack_model(images, targets)
+                # noise = ((torch.rand_like(images.detach()) * 2 - 1) * epsilon).to(device)  # uniform rand from [-eps, eps]
+                # noise_inputs = images.detach() + noise
+                # noise_inputs.requires_grad = True
+                # noise_outputs = model(noise_inputs)
+                # noise_loss = loss_func(noise_outputs, targets)
+                #
+                # # loss = loss_func(noise_outputs, targets)  # loss to be maximized
+                # input_grad = torch.autograd.grad(noise_loss, noise_inputs)[0]
+                # # print(torch.mean(torch.abs(input_grad)))
+                # delta = noise - alpha * torch.sign(input_grad)
+                # delta.clamp_(-epsilon, epsilon)
+                #
+                # adv_inputs = images + delta
+                attack_model.set_mode_targeted_by_function(lambda image, label: targets)
+                adv_inputs = attack_model(images, targets)
                 adv_inputs.requires_grad = True
                 outputs = model(adv_inputs.detach())
                 adv_loss = loss_func(outputs, targets)
