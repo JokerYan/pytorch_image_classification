@@ -186,8 +186,9 @@ def post_tune(config, model, images, train_loader):
     model = copy.deepcopy(model)
     fix_model = copy.deepcopy(model)
 
-    # images = images.detach() + (torch.rand_like(images.detach()) * 2 - 1) * epsilon
+    images = images.detach() + (torch.rand_like(images.detach()) * 2 - 1) * epsilon
     original_output = fix_model(images)
+    print('original', original_output)
     with torch.enable_grad():
         # optimizer = create_optimizer(config, model)
         optimizer = torch.optim.SGD(lr=0.0001,
