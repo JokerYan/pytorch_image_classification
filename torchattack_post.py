@@ -214,6 +214,10 @@ def post_tune(config, model, images):
                 delta = noise + alpha * torch.sign(input_grad)
                 delta.clamp_(-epsilon, epsilon)
 
+                # calculate noise loss again
+                noise_outputs = model(noise_inputs)
+                noise_loss = loss_func(noise_outputs, targets)
+
                 adv_inputs = images + delta
                 # adv_inputs = attack_model(images, targets)
                 adv_inputs.requires_grad = True
