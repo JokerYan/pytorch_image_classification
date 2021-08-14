@@ -172,9 +172,9 @@ def post_train(config, model, images, targets):
             input()
 
 
-def merge_images(train_images, val_images, channel):
+def merge_images(train_images, val_images, channel, device):
     image = train_images
-    image[0][channel] = 0.5 * image[0][channel] + 0.5 * val_images[0][channel]
+    image[0][channel] = 0.5 * image[0][channel].to(device) + 0.5 * val_images[0][channel].to(device)
     return image
 
 
@@ -203,7 +203,7 @@ def post_tune(config, model, val_images, train_loader):
 
         train_images, train_label = next(iter(train_loader))
         for c in range(3):
-            images = merge_images(train_images, val_images, c).to(device)
+            images = merge_images(train_images, val_images, c, device)
             loss_list = torch.Tensor([0 for _ in range(10)])
             for i in range(10):
                 outputs_list = []
