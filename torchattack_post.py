@@ -141,7 +141,7 @@ def attack(config, model, test_loader, loss_func, logger):
             else:
                 success = 0
             print("Batch {} attack success: {}\tdefense acc: {}\n".format(i, success, acc))
-            input()
+            # input()
             success_meter.update(success, 1)
             accuracy_meter.update(acc, 1)
         adv_image_list.append(adv_images)
