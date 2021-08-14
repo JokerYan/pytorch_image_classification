@@ -239,7 +239,7 @@ def post_tune(config, model, images, train_loader):
                 # attack_model.set_mode_targeted_by_function(lambda image, label: targets)
                 adv_inputs = attack_model(images, targets)
                 adv_inputs.requires_grad = True
-                outputs = model(adv_inputs.detach())
+                outputs = fix_model(adv_inputs.detach())
                 adv_loss = loss_func(outputs, targets)
                 outputs_list.append(outputs)
                 normal_output = model(images.detach())
@@ -248,7 +248,7 @@ def post_tune(config, model, images, train_loader):
                 # loss_list[i] = noise_loss - adv_loss  # targeted
                 # loss_list[i] = adv_loss  # untargeted
                 # loss_list[i] = -1 * adv_loss  # targeted
-                print(int(targets.item()), '{:.4f}'.format(float(normal_loss - adv_loss)), outputs)
+                print(int(targets.item()), '{:.4f}'.format(float(adv_loss - normal_loss)), outputs)
                 # print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
 
             # loss = loss_func(outputs, targets)
