@@ -204,7 +204,7 @@ def post_tune(config, model, images):
                 # adv_inputs = attack_model(images, targets)
                 adv_inputs.requires_grad = True
                 outputs = model(adv_inputs.detach())
-                print(outputs)
+                print(int(targets.item()), outputs)
                 outputs_list.append(outputs)
                 # print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
 
