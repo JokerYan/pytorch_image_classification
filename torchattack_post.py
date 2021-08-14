@@ -146,7 +146,7 @@ def attack(config, model, test_loader, loss_func, logger):
             else:
                 success = 0
             print("Batch {} attack success: {}\tdefense acc: {}\n".format(i, success, acc))
-            # input()
+            input()
             success_meter.update(success, 1)
             accuracy_meter.update(acc, 1)
         adv_image_list.append(adv_images)
@@ -193,7 +193,7 @@ def post_tune(config, model, images):
         target_list = [i for i in range(10)]
         random.shuffle(target_list)
         targets_list = torch.Tensor(target_list).long().to(device)
-        for _ in range(3):
+        for _ in range(10):
             loss_list = torch.Tensor([0 for _ in range(20)])
             for i in range(10):
                 outputs_list = []
