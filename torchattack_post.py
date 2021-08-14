@@ -193,8 +193,8 @@ def post_tune(config, model, images):
         target_list = [i for i in range(10)]
         random.shuffle(target_list)
         targets_list = torch.Tensor(target_list).long().to(device)
-        loss_list = torch.Tensor([0 for _ in range(20)])
         for _ in range(3):
+            loss_list = torch.Tensor([0 for _ in range(20)])
             for i in range(10):
                 outputs_list = []
                 targets = targets_list[i % len(targets_list)].reshape([1])
