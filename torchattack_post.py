@@ -205,7 +205,7 @@ def post_tune(config, model, val_images, train_loader):
         train_images.to(device)
         train_label.to(device)
         for c in range(3):
-            images = merge_images(train_images, val_images, c)
+            images = merge_images(train_images, val_images, c).to(device)
             loss_list = torch.Tensor([0 for _ in range(10)])
             for i in range(10):
                 outputs_list = []
