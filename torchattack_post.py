@@ -49,11 +49,11 @@ def load_config(options=None):
     config = get_default_config()
     config.merge_from_file(args.config)
     config.merge_from_list(args.options)
-    print(args.options)
-    print(config.train.batch_size)
-    print(config.test.batch_size)
     if options:
         config.merge_from_list(options)
+        print(args.options)
+        print(config.train.batch_size)
+        print(config.test.batch_size)
     if args.target is not None:
         global attack_target_class
         attack_target_class = args.target
