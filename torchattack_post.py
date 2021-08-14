@@ -196,6 +196,7 @@ def post_tune(config, model, images):
 
                 # loss = loss_func(noise_outputs, targets)  # loss to be maximized
                 loss = torch.norm(torch.autograd.grad(torch.sum(torch.abs(noise_outputs)), noise_outputs, retain_graph=True)[0], p=2)
+                loss.requires_grad = True
                 input_grad = torch.autograd.grad(loss, noise_inputs)[0]
                 # print(torch.mean(torch.abs(input_grad)))
                 delta = noise + alpha * torch.sign(input_grad)
@@ -220,6 +221,7 @@ def post_tune(config, model, images):
             # loss = kl_loss
             loss = torch.norm(torch.autograd.grad(torch.sum(torch.abs(outputs_list[0])), adv_inputs, retain_graph=True)[0],
                               p=2)
+            loss.requires_grad = True
             print(loss)
             loss.backward()
             optimizer.step()
