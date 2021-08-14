@@ -105,8 +105,7 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
     )
 
     for i, (data, labels) in enumerate(test_loader):
-        print(data.shape)
-        print(labels.shape)
+        print(config.test.batch_size)
         if i == 100:
             break
         data = data.to(device)
