@@ -130,7 +130,7 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
                 int(torch.argmax(adv_output)), int(labels)))
 
             # post_train(config, model, adv_images, labels)
-            post_tuned_model = post_tune(config, model, data, train_loader)
+            post_tuned_model = post_tune(config, model, adv_images, train_loader)
             post_tuned_output = post_tuned_model(adv_images)
             print()
             print("adv ", adv_output)
@@ -146,7 +146,7 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
             else:
                 success = 0
             print("Batch {} attack success: {}\tdefense acc: {}\n".format(i, success, acc))
-            # input()
+            input()
             success_meter.update(success, 1)
             accuracy_meter.update(acc, 1)
         adv_image_list.append(adv_images)
