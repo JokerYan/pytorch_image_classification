@@ -242,12 +242,13 @@ def post_tune(config, model, images, train_loader):
                 outputs = model(adv_inputs.detach())
                 adv_loss = loss_func(outputs, targets)
                 outputs_list.append(outputs)
-                original_loss = loss_func(original_output, targets)
-                loss_list[i] = adv_loss - original_loss  # untargeted
+                normal_output = model(images.detach())
+                normal_loss = loss_func(normal_output, targets)
+                loss_list[i] = adv_loss - normal_loss  # untargeted
                 # loss_list[i] = noise_loss - adv_loss  # targeted
                 # loss_list[i] = adv_loss  # untargeted
                 # loss_list[i] = -1 * adv_loss  # targeted
-                print(int(targets.item()), '{:.4f}'.format(float(original_loss - adv_loss)), outputs)
+                print(int(targets.item()), '{:.4f}'.format(float(normal_loss - adv_loss)), outputs)
                 # print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
 
             # loss = loss_func(outputs, targets)
