@@ -186,7 +186,9 @@ def post_tune(config, model, images):
         # targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(original_output))
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
         # targets_list = torch.topk(original_output, k=3).indices.squeeze().detach()
-        targets_list = torch.Tensor(random.shuffle([i for i in range(10)]))
+        target_list = [i for i in range(10)]
+        random.shuffle(target_list)
+        targets_list = torch.Tensor(target_list)
         for i in range(20):
             outputs_list = []
             loss_list = []
