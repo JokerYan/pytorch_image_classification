@@ -173,7 +173,7 @@ def post_train(config, model, images, targets):
 
 
 def merge_images(train_images, val_images, channel, device):
-    image = train_images
+    image = train_images.to(device)
     image[0][channel] = 0.5 * image[0][channel].to(device) + 0.5 * val_images[0][channel].to(device)
     return image
 
