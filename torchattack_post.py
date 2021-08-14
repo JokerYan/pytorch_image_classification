@@ -193,12 +193,12 @@ def post_tune(config, model, images, train_loader):
     print('original', torch.argmax(original_output), original_output)
 
     with torch.enable_grad():
-        # re-position start
-        attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=2, random_start=False)
-        original_label = torch.argmax(original_output).reshape(1)
-        images = attack_model(images, original_label)
-        start_output = fix_model(images)
-        print('start', torch.argmax(start_output), start_output)
+        # # re-position start
+        # attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=2, random_start=False)
+        # original_label = torch.argmax(original_output).reshape(1)
+        # images = attack_model(images, original_label)
+        # start_output = fix_model(images)
+        # print('start', torch.argmax(start_output), start_output)
 
         # optimizer = create_optimizer(config, model)
         optimizer = torch.optim.SGD(lr=0.0001,
