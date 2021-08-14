@@ -10,6 +10,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.autograd import Variable
 import torchattacks
 import torchvision.transforms as torch_transforms
 import tqdm
@@ -189,9 +190,9 @@ def post_tune(config, model, images):
         target_list = [i for i in range(10)]
         random.shuffle(target_list)
         targets_list = torch.Tensor(target_list).long().to(device)
+        total_loss = Variable(0, requires_grad=True)
         for i in range(20):
             outputs_list = []
-            loss_list = []
             targets = targets_list[i % len(targets_list)].reshape([1])
             print(targets)
             for _ in range(1):
@@ -217,7 +218,7 @@ def post_tune(config, model, images):
                 print(int(targets.item()), outputs)
                 adv_loss = loss_func(outputs, targets)
                 outputs_list.append(outputs)
-                loss_list.append(torch.relu(adv_loss - noise_loss))
+                total_loss += torch.relu(adv_loss - noise_loss)
                 # print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
 
             # loss = loss_func(outputs, targets)
@@ -228,7 +229,7 @@ def post_tune(config, model, images):
             # amplitude_regularization = torch.sum(torch.abs(outputs_list[0])) + torch.sum(torch.abs(outputs_list[0]))
             # loss = kl_loss + 0 * amplitude_regularization
             # print(loss, kl_loss, 0 * amplitude_regularization)
-            loss = torch.sum(torch.Tensor(loss_list))
+            loss = total_loss
             print(loss)
             loss.backward()
             optimizer.step()
