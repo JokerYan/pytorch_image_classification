@@ -205,20 +205,20 @@ def post_tune(config, model, images, train_loader):
                                     params=model.parameters(),
                                     momentum=config.train.momentum,
                                     nesterov=config.train.nesterov)
-        # targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(original_output))
+        targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(original_output))
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
         # targets_list = torch.topk(original_output, k=3).indices.squeeze().detach()
         target_list = [i for i in range(10)]
         random.shuffle(target_list)
         targets_list = torch.Tensor(target_list).long().to(device)
 
-        for _ in range(3):
+        for _ in range(5):
             loss_list = torch.Tensor([0 for _ in range(10)])
-            for i in range(10):
+            for i in range(5):
                 # train_images, train_label = next(iter(train_loader))
                 # images = merge_images(train_images, val_images, device)
                 outputs_list = []
-                targets = targets_list[i % len(targets_list)].reshape([1])
+                # targets = targets_list[i % len(targets_list)].reshape([1])
                 # targets = targets_list[1].reshape([1])  # guess target
                 # targets = torch.randint(0, 9, [len(images)]).to(device)
                 # targets = train_label.to(device)
@@ -242,11 +242,11 @@ def post_tune(config, model, images, train_loader):
                 outputs = model(adv_inputs.detach())
                 adv_loss = loss_func(outputs, targets)
                 outputs_list.append(outputs)
-                # loss_list[i] = adv_loss - noise_loss  # untargeted
+                original_loss = loss_func(original_output, targets)
+                loss_list[i] = adv_loss - original_loss  # untargeted
                 # loss_list[i] = noise_loss - adv_loss  # targeted
                 # loss_list[i] = adv_loss  # untargeted
-                loss_list[i] = -1 * adv_loss  # targeted
-                original_loss = loss_func(original_output, targets)
+                # loss_list[i] = -1 * adv_loss  # targeted
                 print(int(targets.item()), '{:.4f}'.format(float(original_loss - adv_loss)), outputs)
                 # print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
 
