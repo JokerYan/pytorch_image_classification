@@ -130,7 +130,7 @@ def attack(config, model, test_loader, loss_func, logger):
                 int(torch.argmax(adv_output)), int(labels)))
 
             # post_train(config, model, adv_images, labels)
-            post_tuned_model = post_tune(config, model, data)
+            post_tuned_model = post_tune(config, model, adv_images)
             post_tuned_output = post_tuned_model(adv_images)
             print()
             print("adv ", adv_output)
@@ -194,12 +194,12 @@ def post_tune(config, model, images):
         target_list = [i for i in range(10)]
         random.shuffle(target_list)
         targets_list = torch.Tensor(target_list).long().to(device)
-        for _ in range(10):
-            loss_list = torch.Tensor([0 for _ in range(20)])
+        for _ in range(1):
+            loss_list = torch.Tensor([0 for _ in range(10)])
             for i in range(10):
                 outputs_list = []
-                targets = targets_list[i % len(targets_list)].reshape([1])
-                print(targets)
+                # targets = targets_list[i % len(targets_list)].reshape([1])
+                targets = targets_list[0].reshape([1])  # guess target
                 # targets = torch.randint(0, 9, [len(images)]).to(device)
                 optimizer.zero_grad()
                 noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
@@ -209,14 +209,10 @@ def post_tune(config, model, images):
                 noise_loss = loss_func(noise_outputs, targets)
 
                 # loss = loss_func(noise_outputs, targets)  # loss to be maximized
-                input_grad = torch.autograd.grad(-1 * noise_loss, noise_inputs)[0]
+                input_grad = torch.autograd.grad(noise_loss, noise_inputs)[0]
                 # print(torch.mean(torch.abs(input_grad)))
-                delta = noise + alpha * torch.sign(input_grad)
+                delta = noise - alpha * torch.sign(input_grad)
                 delta.clamp_(-epsilon, epsilon)
-
-                # calculate noise loss again
-                noise_outputs = model(noise_inputs)
-                noise_loss = loss_func(noise_outputs, targets)
 
                 adv_inputs = images + delta
                 # adv_inputs = attack_model(images, targets)
@@ -226,7 +222,8 @@ def post_tune(config, model, images):
                 adv_loss = loss_func(outputs, targets)
                 outputs_list.append(outputs)
                 # loss_list[i] = adv_loss - noise_loss  # untargeted
-                loss_list[i] = noise_loss - adv_loss  # targeted
+                # loss_list[i] = noise_loss - adv_loss  # targeted
+                loss_list[i] = -1 * adv_loss  # targeted
                 # print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
 
             # loss = loss_func(outputs, targets)
@@ -271,7 +268,7 @@ def main():
                                     save_dir=output_dir)
         checkpointer.load(config.test.checkpoint)
 
-    test_loader = create_dataloader(config, is_train=True)
+    test_loader = create_dataloader(config, is_train=False)
     _, test_loss = create_loss(config)
 
     attack(config, model, test_loader, test_loss, logger)
