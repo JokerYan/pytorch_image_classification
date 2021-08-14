@@ -141,7 +141,7 @@ def attack(config, model, test_loader, loss_func, logger):
             else:
                 success = 0
             print("Batch {} attack success: {}\tdefense acc: {}\n".format(i, success, acc))
-            # input()
+            input()
             success_meter.update(success, 1)
             accuracy_meter.update(acc, 1)
         adv_image_list.append(adv_images)
@@ -186,13 +186,15 @@ def post_tune(config, model, images):
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
         for _ in range(10):
             outputs_list = []
-            for _ in range(2):
+            for _ in range(1):
                 targets = torch.randint(0, 9, [len(images)]).to(device)
                 optimizer.zero_grad()
-                # noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
-                # noise_inputs = images.detach() + noise
-                # noise_inputs.requires_grad = True
-                # noise_outputs = model(noise_inputs)
+                noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
+                noise_inputs = images.detach() + noise
+                noise_inputs.requires_grad = True
+                noise_outputs = model(noise_inputs)
+                noise_loss = loss_func(noise_outputs, targets)
+
                 #
                 # loss = loss_func(noise_outputs, targets)  # loss to be maximized
                 # input_grad = torch.autograd.grad(loss, noise_inputs)[0]
@@ -205,19 +207,20 @@ def post_tune(config, model, images):
                 adv_inputs.requires_grad = True
                 outputs = model(adv_inputs.detach())
                 print(int(targets.item()), outputs)
+                adv_loss = loss_func(outputs, targets)
                 outputs_list.append(outputs)
                 # print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
 
             # loss = loss_func(outputs, targets)
-            kl_loss = nn.KLDivLoss(size_average=False, log_target=True)(
-                torch.log_softmax(outputs_list[0], dim=1),
-                torch.log_softmax(outputs_list[1], dim=1)
-            )
-            amplitude_regularization = torch.sum(torch.abs(outputs_list[0])) + torch.sum(torch.abs(outputs_list[0]))
-            loss = kl_loss + 0 * amplitude_regularization
-            print(loss, kl_loss, 0 * amplitude_regularization)
-            # loss = kl_loss
-            # print(loss)
+            # kl_loss = nn.KLDivLoss(size_average=False, log_target=True)(
+            #     torch.log_softmax(outputs_list[0], dim=1),
+            #     torch.log_softmax(outputs_list[1], dim=1)
+            # )
+            # amplitude_regularization = torch.sum(torch.abs(outputs_list[0])) + torch.sum(torch.abs(outputs_list[0]))
+            # loss = kl_loss + 0 * amplitude_regularization
+            # print(loss, kl_loss, 0 * amplitude_regularization)
+            loss = torch.relu(adv_loss - noise_loss)
+            print(loss)
             loss.backward()
             optimizer.step()
 
