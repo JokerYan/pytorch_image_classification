@@ -203,7 +203,7 @@ def post_tune(config, model, val_images, train_loader):
 
         train_images, train_label = next(iter(train_loader))
         for c in range(3):
-            images = merge_images(train_images, val_images, c)
+            images = merge_images(train_images, val_images, c).to(device)
             loss_list = torch.Tensor([0 for _ in range(10)])
             for i in range(10):
                 outputs_list = []
@@ -215,8 +215,8 @@ def post_tune(config, model, val_images, train_loader):
                 noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
                 noise_inputs = images.detach() + noise
                 noise_inputs.requires_grad = True
+                print(noise_inputs, targets)
                 noise_outputs = model(noise_inputs)
-                print(noise_outputs, targets)
                 noise_loss = loss_func(noise_outputs, targets)
 
                 # loss = loss_func(noise_outputs, targets)  # loss to be maximized
