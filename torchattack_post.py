@@ -178,7 +178,7 @@ def post_tune(config, model, images):
     original_output = fix_model(images)
     with torch.enable_grad():
         # optimizer = create_optimizer(config, model)
-        optimizer = torch.optim.SGD(lr=0.00001,
+        optimizer = torch.optim.SGD(lr=0.0001,
                                     params=model.parameters(),
                                     momentum=config.train.momentum,
                                     nesterov=config.train.nesterov)
@@ -189,19 +189,19 @@ def post_tune(config, model, images):
             for _ in range(2):
                 targets = torch.randint(0, 9, [len(images)]).to(device)
                 optimizer.zero_grad()
-                noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
-                noise_inputs = images.detach() + noise
-                noise_inputs.requires_grad = True
-                noise_outputs = model(noise_inputs)
-
-                loss = loss_func(noise_outputs, targets)  # loss to be maximized
-                input_grad = torch.autograd.grad(loss, noise_inputs)[0]
-                # print(torch.mean(torch.abs(input_grad)))
-                delta = noise + alpha * torch.sign(input_grad)
-                delta.clamp_(-epsilon, epsilon)
-
-                adv_inputs = images + delta
-                # adv_inputs = attack_model(images, targets)
+                # noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
+                # noise_inputs = images.detach() + noise
+                # noise_inputs.requires_grad = True
+                # noise_outputs = model(noise_inputs)
+                #
+                # loss = loss_func(noise_outputs, targets)  # loss to be maximized
+                # input_grad = torch.autograd.grad(loss, noise_inputs)[0]
+                # # print(torch.mean(torch.abs(input_grad)))
+                # delta = noise + alpha * torch.sign(input_grad)
+                # delta.clamp_(-epsilon, epsilon)
+                #
+                # adv_inputs = images + delta
+                adv_inputs = attack_model(images, targets)
                 adv_inputs.requires_grad = True
                 outputs = model(adv_inputs.detach())
                 print(int(targets.item()), outputs)
