@@ -188,7 +188,7 @@ def post_tune(config, model, images):
                                     params=model.parameters(),
                                     momentum=config.train.momentum,
                                     nesterov=config.train.nesterov)
-        # targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(original_output))
+        targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(original_output))
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
         # targets_list = torch.topk(original_output, k=3).indices.squeeze().detach()
         target_list = [i for i in range(10)]
@@ -199,7 +199,7 @@ def post_tune(config, model, images):
             for i in range(10):
                 outputs_list = []
                 # targets = targets_list[i % len(targets_list)].reshape([1])
-                targets = targets_list[0].reshape([1])  # guess target
+                # targets = targets_list[0].reshape([1])  # guess target
                 # targets = torch.randint(0, 9, [len(images)]).to(device)
                 optimizer.zero_grad()
                 noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
