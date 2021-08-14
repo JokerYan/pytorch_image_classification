@@ -189,10 +189,10 @@ def post_tune(config, model, images):
             targets = torch.randint(0, 9, [len(images)]).to(device)
             for _ in range(2):
                 optimizer.zero_grad()
-                # noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
-                # noise_inputs = images.detach() + noise
+                noise = (torch.rand_like(images.detach()) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
+                noise_inputs = images.detach() + noise
                 # noise_inputs.requires_grad = True
-                # noise_outputs = model(noise_inputs)
+                noise_outputs = model(noise_inputs)
                 #
                 # loss = loss_func(noise_outputs, targets)  # loss to be maximized
                 # input_grad = torch.autograd.grad(loss, noise_inputs)[0]
@@ -201,11 +201,11 @@ def post_tune(config, model, images):
                 # delta.clamp_(-epsilon, epsilon)
                 #
                 # adv_inputs = images + delta
-                adv_inputs = attack_model(images, targets)
-                adv_inputs.requires_grad = True
-                outputs = model(adv_inputs)
-                print(targets[0], outputs)
-                outputs_list.append(outputs)
+                # adv_inputs = attack_model(images, targets)
+                # adv_inputs.requires_grad = True
+                # outputs = model(adv_inputs)
+                print(targets[0], noise_outputs)
+                outputs_list.append(noise_outputs)
                 # print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
 
             # loss = loss_func(outputs, targets)
