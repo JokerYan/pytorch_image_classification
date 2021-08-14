@@ -178,7 +178,7 @@ def merge_images(train_images, val_images, device):
     return image
 
 
-def post_tune(config, model, val_images, train_loader):
+def post_tune(config, model, images, train_loader):
     alpha = 2 / 255
     epsilon = 8 / 255
     loss_func = nn.CrossEntropyLoss()
@@ -187,7 +187,7 @@ def post_tune(config, model, val_images, train_loader):
     fix_model = copy.deepcopy(model)
 
     # images = images.detach() + (torch.rand_like(images.detach()) * 2 - 1) * epsilon
-    original_output = fix_model(val_images)
+    original_output = fix_model(images)
     with torch.enable_grad():
         # optimizer = create_optimizer(config, model)
         optimizer = torch.optim.SGD(lr=0.001,
@@ -201,16 +201,16 @@ def post_tune(config, model, val_images, train_loader):
         random.shuffle(target_list)
         targets_list = torch.Tensor(target_list).long().to(device)
 
-        for _ in range(5):
+        for _ in range(3):
             loss_list = torch.Tensor([0 for _ in range(5)])
-            for i in range(5):
-                train_images, train_label = next(iter(train_loader))
-                images = merge_images(train_images, val_images, device)
+            for i in range(10):
+                # train_images, train_label = next(iter(train_loader))
+                # images = merge_images(train_images, val_images, device)
                 outputs_list = []
-                # targets = targets_list[i % len(targets_list)].reshape([1])
+                targets = targets_list[i % len(targets_list)].reshape([1])
                 # targets = targets_list[1].reshape([1])  # guess target
                 # targets = torch.randint(0, 9, [len(images)]).to(device)
-                targets = train_label.to(device)
+                # targets = train_label.to(device)
                 optimizer.zero_grad()
                 noise = ((torch.rand_like(images.detach()) * 2 - 1) * epsilon).to(device)  # uniform rand from [-eps, eps]
                 noise_inputs = images.detach() + noise
@@ -221,7 +221,7 @@ def post_tune(config, model, val_images, train_loader):
                 # loss = loss_func(noise_outputs, targets)  # loss to be maximized
                 input_grad = torch.autograd.grad(noise_loss, noise_inputs)[0]
                 # print(torch.mean(torch.abs(input_grad)))
-                delta = noise + alpha * torch.sign(input_grad)
+                delta = noise - alpha * torch.sign(input_grad)
                 delta.clamp_(-epsilon, epsilon)
 
                 adv_inputs = images + delta
@@ -233,8 +233,8 @@ def post_tune(config, model, val_images, train_loader):
                 outputs_list.append(outputs)
                 # loss_list[i] = adv_loss - noise_loss  # untargeted
                 # loss_list[i] = noise_loss - adv_loss  # targeted
-                loss_list[i] = adv_loss  # untargeted
-                # loss_list[i] = -1 * adv_loss  # targeted
+                # loss_list[i] = adv_loss  # untargeted
+                loss_list[i] = -1 * adv_loss  # targeted
                 # print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
 
             # loss = loss_func(outputs, targets)
