@@ -132,6 +132,7 @@ def attack(config, model, test_loader, loss_func, logger):
             # post_train(config, model, adv_images, labels)
             post_tuned_model = post_tune(config, model, adv_images)
             post_tuned_output = post_tuned_model(adv_images)
+            print(post_tuned_output)
             print(torch.argmax(post_tuned_output), labels)
             # acc = cal_accuracy(normal_output, labels)
             # acc = cal_accuracy(adv_output, labels)
@@ -143,7 +144,7 @@ def attack(config, model, test_loader, loss_func, logger):
             else:
                 success = 0
             print("Batch {} attack success: {}\tdefense acc: {}\n".format(i, success, acc))
-            # input()
+            input()
             success_meter.update(success, 1)
             accuracy_meter.update(acc, 1)
         adv_image_list.append(adv_images)
@@ -180,7 +181,7 @@ def post_tune(config, model, images):
     original_output = fix_model(images)
     with torch.enable_grad():
         # optimizer = create_optimizer(config, model)
-        optimizer = torch.optim.SGD(lr=0.0001,
+        optimizer = torch.optim.SGD(lr=0.001,
                                     params=model.parameters(),
                                     momentum=config.train.momentum,
                                     nesterov=config.train.nesterov)
@@ -229,7 +230,7 @@ def post_tune(config, model, images):
             # amplitude_regularization = torch.sum(torch.abs(outputs_list[0])) + torch.sum(torch.abs(outputs_list[0]))
             # loss = kl_loss + 0 * amplitude_regularization
             # print(loss, kl_loss, 0 * amplitude_regularization)
-            total_loss = torch.sum(torch.Tensor(loss_list))
+            total_loss = torch.mean(torch.Tensor(loss_list))
             total_loss.requires_grad = True
             loss = total_loss
             print(loss)
