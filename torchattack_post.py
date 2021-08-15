@@ -157,6 +157,14 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
     return adv_image_list, accuracy_meter.avg, delta_meter.avg
 
 
+def transform_image(image):
+    transform = torch_transforms.Compose([
+        torch_transforms.RandomHorizontalFlip(),
+        torch_transforms.RandomVerticalFlip(),
+    ])
+    return transform(image)
+
+
 total_counter = 0
 neighbour_counter = 0
 mode_counter = 0
@@ -177,9 +185,29 @@ def post_test(config, model, images, normal_images, labels):
         neighbour_class = torch.argmax(neighbour_output).long().reshape(1)
 
         normal_output = model(normal_images)
-        print('norm', normal_output)
-        print('init', initial_output)
-        print('neig', neighbour_output)
+
+        trans_normal_images = transform_image(normal_images)
+        trans_initial_images = transform_image(images)
+        trans_neighbour_images = transform_image(neighbour_images)
+
+        trans_normal_output = model(trans_normal_images)
+        trans_initial_output = model(trans_initial_images)
+        trans_neighbour_output = model(trans_neighbour_images)
+
+        kl_loss_normal = nn.KLDivLoss(size_average=False, log_target=True)(
+                    torch.log_softmax(trans_normal_output, dim=1),
+                    torch.log_softmax(normal_output, dim=1)
+                )
+        kl_loss_initial = nn.KLDivLoss(size_average=False, log_target=True)(
+                    torch.log_softmax(trans_initial_output, dim=1),
+                    torch.log_softmax(initial_output, dim=1)
+                )
+        kl_loss_neighbour = nn.KLDivLoss(size_average=False, log_target=True)(
+                    torch.log_softmax(trans_neighbour_output, dim=1),
+                    torch.log_softmax(neighbour_output, dim=1)
+                )
+
+        print('{:.5f} {:.5f} {:.5f}'.format(kl_loss_normal, kl_loss_initial, kl_loss_neighbour))
 
         # middle_images = (images.detach() + neighbour_images.detach()) / 2
         # noise = 0 * ((torch.rand_like(middle_images.detach()) * 2 - 1) * epsilon).to(device)  # uniform rand from [-eps, eps]
