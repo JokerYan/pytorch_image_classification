@@ -201,7 +201,7 @@ def post_tune(config, model, images, train_loader):
         # print('start', torch.argmax(start_output), start_output)
 
         # optimizer = create_optimizer(config, model)
-        optimizer = torch.optim.SGD(lr=0.002,
+        optimizer = torch.optim.SGD(lr=0.003,
                                     params=model.parameters(),
                                     momentum=config.train.momentum,
                                     nesterov=config.train.nesterov)
