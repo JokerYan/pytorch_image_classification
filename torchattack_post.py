@@ -133,7 +133,7 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
             # test_random(config, model, data)
             # post_test(config, model, adv_images, data, labels)
             # post_tuned_model = post_tune(config, model, adv_images, train_loader)
-            post_trained_model = post_tune(config, model, adv_images, train_loader)
+            post_trained_model = post_train(config, model, adv_images, train_loader)
             # post_tuned_output = post_tuned_model(adv_images)
             post_trained_output = post_trained_model(adv_images)
             print()
