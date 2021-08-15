@@ -142,6 +142,7 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
         first_loss = loss_func(outputs, targets)
 
         # second attack
+        adv_inputs.requires_grad = True
         second_targets = torch.argmax(outputs, dim=1)
         loss = loss_func(noise_outputs, second_targets)  # loss to be maximized
         input_grad = torch.autograd.grad(loss, adv_inputs)[0]
