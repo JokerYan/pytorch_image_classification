@@ -176,8 +176,9 @@ def post_test(config, model, images, labels):
         neighbour_output = model(neighbour_images)
         neighbour_class = torch.argmax(neighbour_output).long().reshape(1)
 
-        noise = ((torch.rand_like(images.detach()) * 2 - 1) * epsilon).to(device)  # uniform rand from [-eps, eps]
-        noise_inputs = neighbour_images.detach() + noise
+        middle_images = (images.detach() + neighbour_images.detach()) / 2
+        noise = ((torch.rand_like(middle_images.detach()) * 2 - 1) * epsilon).to(device)  # uniform rand from [-eps, eps]
+        noise_inputs = middle_images.detach() + noise
         noise_inputs.requires_grad = True
         noise_outputs = model(noise_inputs)
         noise_loss_normal = loss_func(noise_outputs, initial_class)
@@ -186,7 +187,7 @@ def post_test(config, model, images, labels):
         input_grad = torch.autograd.grad(noise_loss, noise_inputs)[0]
         delta = noise + alpha * torch.sign(input_grad)
         delta.clamp_(-epsilon, epsilon)
-        adv_images = neighbour_images + delta
+        adv_images = middle_images + delta
         adv_output = model(adv_images)
         adv_class = torch.argmax(adv_output)
 
