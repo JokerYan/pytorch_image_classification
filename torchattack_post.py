@@ -177,7 +177,7 @@ def post_test(config, model, images, labels):
         neighbour_class = torch.argmax(neighbour_output).long().reshape(1)
 
         middle_images = (images.detach() + neighbour_images.detach()) / 2
-        noise = ((torch.rand_like(middle_images.detach()) * 2 - 1) * epsilon).to(device)  # uniform rand from [-eps, eps]
+        noise = 0 * ((torch.rand_like(middle_images.detach()) * 2 - 1) * epsilon).to(device)  # uniform rand from [-eps, eps]
         noise_inputs = middle_images.detach() + noise
         noise_inputs.requires_grad = True
         noise_outputs = model(noise_inputs)
