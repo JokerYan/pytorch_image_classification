@@ -172,16 +172,20 @@ def post_test(config, model, images, labels):
         adv_output = model(adv_images)
         adv_class = torch.argmax(adv_output)
 
-        mix_images = (images + adv_images) / 2
-        mix_output = model(mix_images)
-        mix_class = torch.argmax(mix_output)
+        mix_class_correct_list = []
+        for i in [0.1 * x for x in range(1, 10)]:
+            mix_images = i * images + (1 - i) * adv_images
+            mix_output = model(mix_images)
+            mix_class = torch.argmax(mix_output)
+            mix_class_correct_list.append(1 if int(mix_class) == int(labels) else 0)
+        print(mix_class)
 
         global neighbour_counter
         global total_counter
         total_counter += 1
         if int(labels) == int(initial_class) or int(labels) == int(adv_class):
             neighbour_counter += 1
-        print(int(labels), int(initial_class), int(adv_class), int(mix_class))
+        print(int(labels), int(initial_class), int(adv_class))
         print(neighbour_counter, '/', total_counter)
         # input()
 
