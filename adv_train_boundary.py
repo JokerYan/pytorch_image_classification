@@ -153,7 +153,8 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
         mix_data = data.detach() * (1 - mix_ratio) + swap_data * mix_ratio
         mix_targets = swap_targets
         mix_outputs = model(mix_data)
-        negative_loss = loss_func(mix_outputs, mix_targets)
+        # negative_loss = loss_func(mix_outputs, mix_targets)  # targeted loss
+        negative_loss = -1 * loss_func(mix_outputs, targets)  # untargeted loss
 
         loss = adv_loss + negative_loss
         optimizer.zero_grad()
