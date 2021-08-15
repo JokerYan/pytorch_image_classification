@@ -321,7 +321,7 @@ def post_train(config, model, images, train_loader):
             # targeted attack
             target = original_class if int(label) == original_class else neighbour_class
             attack_model.set_mode_targeted_by_function(lambda im, la: target)
-            adv_input = attack_model(model, data)
+            adv_input = attack_model(data, label)
             adv_output = model(adv_input)
             loss = -1 * loss_func(adv_output, target)
             loss_list[i] = loss
