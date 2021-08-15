@@ -160,7 +160,7 @@ total_counter = 0
 neighbour_counter = 0
 def post_test(config, model, images, labels):
     epsilon = 8 / 255
-    attack_model = torchattacks.PGD(model, eps=8 / 255, alpha=2 / 255, steps=20)
+    attack_model = torchattacks.PGD(model, eps=8 / 255, alpha=2 / 255, steps=5)
     loss_func = nn.CrossEntropyLoss()
     device = torch.device(config.device)
     model = copy.deepcopy(model)
