@@ -325,8 +325,10 @@ def post_train(config, model, images, train_loader):
             adv_output = model(adv_input)
             loss = -1 * loss_func(adv_output, target)
             loss_list[i] = loss
+            print(int(original_class), int(torch.argmax(adv_output)), loss)
 
         loss = torch.mean(loss_list)
+        print(loss)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
