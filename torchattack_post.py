@@ -328,11 +328,11 @@ def post_tune(config, model, images, train_loader):
                 )
                 kl_loss_ori = nn.KLDivLoss(size_average=False, log_target=True)(
                     torch.log_softmax(cur_original_output, dim=1),
-                    torch.log_softmax(original_output, dim=1)
+                    torch.log_softmax(original_output.detach(), dim=1)
                 )
                 kl_loss_nei = nn.KLDivLoss(size_average=False, log_target=True)(
                     torch.log_softmax(cur_neighbour_output, dim=1),
-                    torch.log_softmax(neighbour_output, dim=1)
+                    torch.log_softmax(neighbour_output.detach(), dim=1)
                 )
                 loss_list[i] = kl_loss_middle + kl_loss_ori + kl_loss_nei
                 print('ori', cur_original_output)
