@@ -129,16 +129,16 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
                 int(torch.argmax(normal_output)),
                 int(torch.argmax(adv_output)), int(labels)))
 
-            # post_train(config, model, adv_images, labels)
-            post_tuned_model = post_tune(config, model, adv_images, train_loader)
-            post_tuned_output = post_tuned_model(adv_images)
-            print()
-            print("adv ", adv_output)
-            print("post", post_tuned_output)
-            print(torch.argmax(post_tuned_output), labels)
-            # acc = cal_accuracy(normal_output, labels)
-            # acc = cal_accuracy(adv_output, labels)
-            acc = cal_accuracy(post_tuned_output, labels)
+            post_test(config, model, adv_images, labels)
+            # post_tuned_model = post_tune(config, model, adv_images, train_loader)
+            # post_tuned_output = post_tuned_model(adv_images)
+            # print()
+            # print("adv ", adv_output)
+            # print("post", post_tuned_output)
+            # print(torch.argmax(post_tuned_output), labels)
+            # # acc = cal_accuracy(normal_output, labels)
+            acc = cal_accuracy(adv_output, labels)
+            # acc = cal_accuracy(post_tuned_output, labels)
             if attack_target_class == -1:
                 success = cal_accuracy(adv_output, attack_target_list[-1])
             elif attack_target_class is not None:
@@ -156,20 +156,28 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
     return adv_image_list, accuracy_meter.avg, delta_meter.avg
 
 
-def post_train(config, model, images, targets):
+neighbour_counter = 0
+def post_test(config, model, images, labels):
+    attack_model = torchattacks.PGD(model, eps=8 / 255, alpha=2 / 255, steps=20)
     loss_func = nn.CrossEntropyLoss()
     device = torch.device(config.device)
     model = copy.deepcopy(model)
-    optimizer = torch.optim.SGD(lr=0.01, params=model.parameters())
+    # optimizer = torch.optim.SGD(lr=0.0001, params=model.parameters())
     with torch.enable_grad():
-        for i in range(10):
-            optimizer.zero_grad()
-            outputs = model(images)
-            print(targets, torch.argmax(outputs).item(), outputs)
-            loss = loss_func(outputs, targets)
-            loss.backward()
-            optimizer.step()
-            input()
+        initial_output = model(images)
+        initial_class = torch.argmax(initial_output).long().reshape(1)
+
+        adv_images = attack_model(images, initial_class)
+        adv_output = model(adv_images)
+        adv_class = torch.argmax(adv_output)
+
+        global neighbour_counter
+        if int(labels) == int(initial_class) or int(labels) == int(adv_class):
+            neighbour_counter += 1
+        print(labels, initial_class, adv_class)
+        print(neighbour_counter)
+        input()
+
 
 
 def merge_images(train_images, val_images, device):
