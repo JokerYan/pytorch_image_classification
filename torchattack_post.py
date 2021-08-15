@@ -165,6 +165,7 @@ def test_random(config, model, image):
     transform = torch_transforms.RandomResizedCrop(size=32, scale=(6, 8))
     # random_image = torch.rand_like(image)
     random_image = transform(image)
+    print(random_image[0][0])
     output = model(random_image)
     targets = torch.argmax(output, dim=1)
     print(int(targets))
