@@ -130,8 +130,8 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
                 int(torch.argmax(normal_output)),
                 int(torch.argmax(adv_output)), int(labels)))
 
-            test_random(config, model, data)
-            # post_test(config, model, adv_images, data, labels)
+            # test_random(config, model, data)
+            post_test(config, model, adv_images, data, labels)
             # post_tuned_model = post_tune(config, model, adv_images, train_loader)
             # post_tuned_output = post_tuned_model(adv_images)
             # print()
@@ -183,9 +183,9 @@ def transform_image(image):
     transform = torch_transforms.Compose([
         # torch_transforms.RandomHorizontalFlip(),
         # torch_transforms.RandomVerticalFlip(),
-        # torch_transforms.RandomResizedCrop(size=32),
+        torch_transforms.RandomResizedCrop(size=32, scale=(1/2, 1/4)),
         # torch_transforms.GaussianBlur(kernel_size=9),
-        torch_transforms.RandomAutocontrast(),
+        # torch_transforms.RandomAutocontrast(),
     ])
     return transform(image)
 
