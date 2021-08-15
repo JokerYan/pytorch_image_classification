@@ -155,7 +155,7 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
         mix_outputs = model(mix_data)
         negative_loss = loss_func(mix_outputs, mix_targets)
 
-        loss = adv_loss + -1 * negative_loss
+        loss = adv_loss + negative_loss
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
