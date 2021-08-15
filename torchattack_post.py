@@ -158,15 +158,18 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
     return adv_image_list, accuracy_meter.avg, delta_meter.avg
 
 
-def test_random(config, model, image):
+def test_random(config, model, reference_image):
     epsilon = 8 / 255
-    random_image = torch.rand_like(image)
+    random_image = torch.rand_like(reference_image)
     output = model(random_image)
-    print(int(torch.argmax(output)))
-    for i in range(10):
-        noise_image = random_image + (torch.rand_like(random_image.detach()) * 2 - 1) * epsilon
-        noise_output = model(noise_image)
-        print(int(torch.argmax(noise_output)))
+    targets = torch.argmax(output, dim=1)
+    print(int(targets))
+    attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
+    with torch.enable_grad():
+        adv_image = attack_model(random_image, targets)
+        adv_output = model(adv_image)
+        adv_class = torch.argmax(adv_output, dim=1)
+        print(int(adv_class))
     input()
 
 
