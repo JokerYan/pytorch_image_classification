@@ -320,16 +320,24 @@ def post_tune(config, model, images, train_loader):
                 # targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(outputs))
                 # print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
 
-                original_output = model(images.detach())
-                neighbour_output = model(neighbour_images.detach())
-                kl_loss = nn.KLDivLoss(size_average=False, log_target=True)(
-                    torch.log_softmax(original_output, dim=1),
+                cur_original_output = model(images.detach())
+                cur_neighbour_output = model(neighbour_images.detach())
+                kl_loss_middle = nn.KLDivLoss(size_average=False, log_target=True)(
+                    torch.log_softmax(cur_original_output, dim=1),
+                    torch.log_softmax(cur_neighbour_output, dim=1)
+                )
+                kl_loss_ori = nn.KLDivLoss(size_average=False, log_target=True)(
+                    torch.log_softmax(cur_original_output, dim=1),
+                    torch.log_softmax(original_output, dim=1)
+                )
+                kl_loss_nei = nn.KLDivLoss(size_average=False, log_target=True)(
+                    torch.log_softmax(cur_neighbour_output, dim=1),
                     torch.log_softmax(neighbour_output, dim=1)
                 )
-                loss_list[i] = kl_loss
-                print('ori', original_output)
-                print('nei', neighbour_output)
-                print(kl_loss)
+                loss_list[i] = kl_loss_middle + kl_loss_ori + kl_loss_nei
+                print('ori', cur_original_output)
+                print('nei', cur_neighbour_output)
+                print(loss_list[i])
 
             # loss = loss_func(outputs, targets)
             # kl_loss = nn.KLDivLoss(size_average=False, log_target=True)(
