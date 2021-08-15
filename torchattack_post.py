@@ -219,7 +219,7 @@ def post_tune(config, model, images, train_loader):
         adv_inputs.requires_grad = True
         adv_outputs = model(adv_inputs.detach())
         targets_list[1] = int(torch.argmax(adv_outputs))
-        targets_list = targets_list.long()
+        targets_list = targets_list.long().to(device)
         print('targets_list', targets_list)
 
         for _ in range(5):
