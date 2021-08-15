@@ -129,16 +129,16 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
                 int(torch.argmax(normal_output)),
                 int(torch.argmax(adv_output)), int(labels)))
 
-            # post_test(config, model, adv_images, labels)
-            post_tuned_model = post_tune(config, model, adv_images, train_loader)
-            post_tuned_output = post_tuned_model(adv_images)
-            print()
-            print("adv ", adv_output)
-            print("post", post_tuned_output)
-            print(torch.argmax(post_tuned_output), labels)
+            post_test(config, model, adv_images, data, labels)
+            # post_tuned_model = post_tune(config, model, adv_images, train_loader)
+            # post_tuned_output = post_tuned_model(adv_images)
+            # print()
+            # print("adv ", adv_output)
+            # print("post", post_tuned_output)
+            # print(torch.argmax(post_tuned_output), labels)
             # # acc = cal_accuracy(normal_output, labels)
-            # acc = cal_accuracy(adv_output, labels)
-            acc = cal_accuracy(post_tuned_output, labels)
+            acc = cal_accuracy(adv_output, labels)
+            # acc = cal_accuracy(post_tuned_output, labels)
             # acc = cal_accuracy(post_output, labels)
             if attack_target_class == -1:
                 success = cal_accuracy(adv_output, attack_target_list[-1])
@@ -160,7 +160,7 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
 total_counter = 0
 neighbour_counter = 0
 mode_counter = 0
-def post_test(config, model, images, labels):
+def post_test(config, model, images, normal_images, labels):
     alpha = 2 / 255
     epsilon = 8 / 255
     attack_model = torchattacks.PGD(model, eps=8 / 255, alpha=2 / 255, steps=20)
@@ -176,44 +176,49 @@ def post_test(config, model, images, labels):
         neighbour_output = model(neighbour_images)
         neighbour_class = torch.argmax(neighbour_output).long().reshape(1)
 
-        middle_images = (images.detach() + neighbour_images.detach()) / 2
-        noise = 0 * ((torch.rand_like(middle_images.detach()) * 2 - 1) * epsilon).to(device)  # uniform rand from [-eps, eps]
-        noise_inputs = middle_images.detach() + noise
-        noise_inputs.requires_grad = True
-        noise_outputs = model(noise_inputs)
-        noise_loss_normal = loss_func(noise_outputs, initial_class)
-        noise_loss_neighbour = loss_func(noise_outputs, neighbour_class)
-        noise_loss = (noise_loss_normal + noise_loss_neighbour) / 2
-        input_grad = torch.autograd.grad(noise_loss, noise_inputs)[0]
-        delta = noise + alpha * torch.sign(input_grad)
-        delta.clamp_(-epsilon, epsilon)
-        adv_images = middle_images + delta
-        adv_output = model(adv_images)
-        adv_class = torch.argmax(adv_output)
+        normal_output = model(normal_images)
+        print('norm', normal_output)
+        print('init', initial_output)
+        print('neig', neighbour_output)
 
-        mix_class_list = []
-        mix_class_correct_list = []
-        for i in [0.1 * x for x in range(1, 10)]:
-            noise = ((torch.rand_like(images.detach()) * 2 - 1) * epsilon).to(device)  # uniform rand from [-eps, eps]
-            mix_images = i * images + (1 - i) * neighbour_images + noise
-            mix_output = model(mix_images)
-            mix_class = torch.argmax(mix_output)
-            mix_class_list.append(mix_class)
-            mix_class_correct_list.append(1 if int(mix_class) == int(labels) else 0)
-        print(mix_class_correct_list, int(torch.mode(torch.Tensor(mix_class_correct_list)).values))
+        # middle_images = (images.detach() + neighbour_images.detach()) / 2
+        # noise = 0 * ((torch.rand_like(middle_images.detach()) * 2 - 1) * epsilon).to(device)  # uniform rand from [-eps, eps]
+        # noise_inputs = middle_images.detach() + noise
+        # noise_inputs.requires_grad = True
+        # noise_outputs = model(noise_inputs)
+        # noise_loss_normal = loss_func(noise_outputs, initial_class)
+        # noise_loss_neighbour = loss_func(noise_outputs, neighbour_class)
+        # noise_loss = (noise_loss_normal + noise_loss_neighbour) / 2
+        # input_grad = torch.autograd.grad(noise_loss, noise_inputs)[0]
+        # delta = noise + alpha * torch.sign(input_grad)
+        # delta.clamp_(-epsilon, epsilon)
+        # adv_images = middle_images + delta
+        # adv_output = model(adv_images)
+        # adv_class = torch.argmax(adv_output)
+
+        # mix_class_list = []
+        # mix_class_correct_list = []
+        # for i in [0.1 * x for x in range(1, 10)]:
+        #     noise = ((torch.rand_like(images.detach()) * 2 - 1) * epsilon).to(device)  # uniform rand from [-eps, eps]
+        #     mix_images = i * images + (1 - i) * neighbour_images + noise
+        #     mix_output = model(mix_images)
+        #     mix_class = torch.argmax(mix_output)
+        #     mix_class_list.append(mix_class)
+        #     mix_class_correct_list.append(1 if int(mix_class) == int(labels) else 0)
+        # print(mix_class_correct_list, int(torch.mode(torch.Tensor(mix_class_correct_list)).values))
 
         global neighbour_counter
         global total_counter
         total_counter += 1
-        if int(torch.mode(torch.Tensor(mix_class_correct_list)).values):
-            global mode_counter
-            mode_counter += 1
+        # if int(torch.mode(torch.Tensor(mix_class_correct_list)).values):
+        #     global mode_counter
+        #     mode_counter += 1
         if int(labels) == int(initial_class) or int(labels) == int(neighbour_class):
             neighbour_counter += 1
-        print('label: {} init: {} neighbour: {} adv: {}'
-              .format(int(labels), int(initial_class), int(neighbour_class), int(adv_class)))
+        print('label: {} init: {} neighbour: {}'
+              .format(int(labels), int(initial_class), int(neighbour_class)))
         print(neighbour_counter, '/', total_counter)
-        print(mode_counter, '/', total_counter)
+        # print(mode_counter, '/', total_counter)
         # input()
 
 
