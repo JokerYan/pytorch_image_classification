@@ -360,6 +360,21 @@ def pgd_validate(epoch, config, model, loss_func, val_loader, logger,
         adv_inputs = pgd_model(data, targets)
 
         outputs = model(adv_inputs)
+
+        # second attack
+        second_inputs = adv_inputs.detach()
+        second_inputs.requires_grad = True
+        second_outputs = model(second_inputs)
+        second_targets = torch.argmax(second_outputs, dim=1)
+        loss = loss_func(second_outputs, second_targets)  # loss to be maximized
+        input_grad = torch.autograd.grad(loss, second_inputs)[0]
+        delta = alpha * torch.sign(input_grad)
+        delta.clamp_(-epsilon, epsilon)
+        second_adv_inputs = second_inputs + delta
+        second_adv_outputs = model(second_adv_inputs)
+
+        outputs = second_adv_outputs
+
         loss = loss_func(outputs, targets)
 
         acc1, acc5 = compute_accuracy(config,
