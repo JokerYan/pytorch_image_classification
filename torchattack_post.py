@@ -163,7 +163,7 @@ def transform_image(image):
         # torch_transforms.RandomVerticalFlip(),
         # torch_transforms.RandomResizedCrop(size=32),
         # torch_transforms.GaussianBlur(kernel_size=9),
-        torch_transforms.RandomAutocontrast
+        torch_transforms.RandomAutocontrast(),
     ])
     return transform(image)
 
