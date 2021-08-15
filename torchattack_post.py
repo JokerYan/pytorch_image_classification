@@ -10,6 +10,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision.transforms
 from torch.autograd import Variable
 import torchattacks
 import torchvision.transforms as torch_transforms
@@ -161,6 +162,7 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
 def test_random(config, model, reference_image):
     epsilon = 8 / 255
     random_image = torch.rand_like(reference_image)
+    random_image = torchvision.transforms.GaussianBlur(kernel_size=5)(random_image)
     output = model(random_image)
     targets = torch.argmax(output, dim=1)
     print(int(targets))
