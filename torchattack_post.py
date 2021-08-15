@@ -311,8 +311,8 @@ def post_train(config, model, images, train_loader):
         neighbour_class = torch.argmax(neighbour_output).reshape(1)
 
         # reinforce train
-        loss_list = torch.Tensor([0 for _ in range(512)]).to(device)
-        for i in range(512):
+        loss_list = torch.Tensor([0 for _ in range(64)]).to(device)
+        for i in range(64):
             data, label = next(iter(train_loader))
             data = data.to(device)
             label = label.to(device)
