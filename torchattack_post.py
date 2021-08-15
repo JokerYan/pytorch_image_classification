@@ -321,7 +321,8 @@ def post_train(config, model, images, train_loader):
                 continue
             effective_count += 1
             # targeted attack
-            target = original_class if int(label) == original_class else neighbour_class
+            target = neighbour_class if int(label) == original_class else original_class
+            assert target != label
             # attack_model.set_mode_targeted_by_function(lambda im, la: target)
             adv_input = attack_model(data, label)
             adv_output = model(adv_input)
