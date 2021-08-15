@@ -196,9 +196,9 @@ def post_test(config, model, images, normal_images, labels):
         trans_initial_output = model(trans_initial_images)
         trans_neighbour_output = model(trans_neighbour_images)
 
-        trans_normal_class = int(torch.argmax(normal_output))
-        trans_initial_class = int(torch.argmax(initial_output))
-        trans_neighbour_class = int(torch.argmax(neighbour_output))
+        trans_normal_class = int(torch.argmax(trans_normal_output))
+        trans_initial_class = int(torch.argmax(trans_initial_output))
+        trans_neighbour_class = int(torch.argmax(trans_neighbour_output))
 
         kl_loss_normal = nn.KLDivLoss(size_average=False, log_target=True)(
                     torch.log_softmax(trans_normal_output, dim=1),
