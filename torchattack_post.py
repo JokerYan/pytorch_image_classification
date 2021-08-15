@@ -129,7 +129,7 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
                 int(torch.argmax(normal_output)),
                 int(torch.argmax(adv_output)), int(labels)))
 
-            post_test(config, model, adv_images, labels)
+            post_output = post_test(config, model, adv_images, labels)
             # post_tuned_model = post_tune(config, model, adv_images, train_loader)
             # post_tuned_output = post_tuned_model(adv_images)
             # print()
@@ -137,8 +137,9 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
             # print("post", post_tuned_output)
             # print(torch.argmax(post_tuned_output), labels)
             # # acc = cal_accuracy(normal_output, labels)
-            acc = cal_accuracy(adv_output, labels)
+            # acc = cal_accuracy(adv_output, labels)
             # acc = cal_accuracy(post_tuned_output, labels)
+            acc = cal_accuracy(post_output, labels)
             if attack_target_class == -1:
                 success = cal_accuracy(adv_output, attack_target_list[-1])
             elif attack_target_class is not None:
@@ -174,12 +175,14 @@ def post_test(config, model, images, labels):
         adv_output = model(adv_images)
         adv_class = torch.argmax(adv_output)
 
+        mix_class_list = []
         mix_class_correct_list = []
         for i in [0.1 * x for x in range(1, 10)]:
             noise = ((torch.rand_like(images.detach()) * 2 - 1) * epsilon).to(device)  # uniform rand from [-eps, eps]
             mix_images = i * images + (1 - i) * adv_images + noise
             mix_output = model(mix_images)
             mix_class = torch.argmax(mix_output)
+            mix_class_list.append(mix_class)
             mix_class_correct_list.append(1 if int(mix_class) == int(labels) else 0)
         print(mix_class_correct_list, int(torch.mode(torch.Tensor(mix_class_correct_list)).values))
 
@@ -195,6 +198,10 @@ def post_test(config, model, images, labels):
         print(neighbour_counter, '/', total_counter)
         print(mode_counter, '/', total_counter)
         # input()
+
+        if initial_class == int(torch.mode(torch.Tensor(mix_class_correct_list)).values):
+            return adv_output
+        return initial_output
 
 
 
