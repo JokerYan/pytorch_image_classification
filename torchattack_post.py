@@ -337,7 +337,7 @@ def post_tune(config, model, images, train_loader):
                 loss_list[i] = kl_loss_middle + kl_loss_ori + kl_loss_nei
                 print('ori', cur_original_output)
                 print('nei', cur_neighbour_output)
-                print(float(kl_loss_middle), float(kl_loss_ori), float(kl_loss_nei))
+                print('{:.4f} {:.4f} {:.4f}'.format(float(kl_loss_middle), float(kl_loss_ori), float(kl_loss_nei)))
 
             # loss = loss_func(outputs, targets)
             # kl_loss = nn.KLDivLoss(size_average=False, log_target=True)(
