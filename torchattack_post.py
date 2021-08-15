@@ -132,15 +132,17 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
 
             # test_random(config, model, data)
             # post_test(config, model, adv_images, data, labels)
-            post_tuned_model = post_tune(config, model, adv_images, train_loader)
-            post_tuned_output = post_tuned_model(adv_images)
+            # post_tuned_model = post_tune(config, model, adv_images, train_loader)
+            post_trained_model = post_tune(config, model, adv_images, train_loader)
+            # post_tuned_output = post_tuned_model(adv_images)
+            post_trained_output = post_trained_model(adv_images)
             print()
             print("adv ", adv_output)
-            print("post", post_tuned_output)
-            print(torch.argmax(post_tuned_output), labels)
+            print("post", post_trained_output)
+            print(torch.argmax(post_trained_output), labels)
             # # acc = cal_accuracy(normal_output, labels)
             # acc = cal_accuracy(adv_output, labels)
-            acc = cal_accuracy(post_tuned_output, labels)
+            acc = cal_accuracy(post_trained_output, labels)
             # acc = cal_accuracy(post_output, labels)
             if attack_target_class == -1:
                 success = cal_accuracy(adv_output, attack_target_list[-1])
@@ -286,6 +288,49 @@ def merge_images(train_images, val_images, device):
     image = 0.9 * train_images.to(device) + 0.1 * val_images.to(device)
     # image[0][channel] = 0.5 * image[0][channel].to(device) + 0.5 * val_images[0][channel].to(device)
     return image
+
+
+def post_train(config, model, images, train_loader):
+    alpha = 2 / 255
+    epsilon = 8 / 255
+    loss_func = nn.CrossEntropyLoss()
+    device = torch.device(config.device)
+    model = copy.deepcopy(model)
+    fix_model = copy.deepcopy(model)
+    attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
+    optimizer = torch.optim.SGD(lr=0.0001,
+                                params=model.parameters(),
+                                momentum=config.train.momentum,
+                                nesterov=config.train.nesterov)
+    with torch.enable_grad():
+        # find neighbour
+        original_output = fix_model(images)
+        original_class = torch.argmax(original_output).reshape(1)
+        neighbour_images = attack_model(images, original_class)
+        neighbour_output = fix_model(neighbour_images)
+        neighbour_class = torch.argmax(neighbour_output).reshape(1)
+
+        # reinforce train
+        loss_list = torch.Tensor([0 for _ in range(512)]).to(device)
+        for i in range(512):
+            data, label = next(iter(train_loader))
+            data = data.to(device)
+            label = label.to(device)
+            if int(label) != int(original_class) and int(label) != int(neighbour_class):
+                continue
+            # targeted attack
+            target = original_class if int(label) == original_class else neighbour_class
+            attack_model.set_mode_targeted_by_function(lambda im, la: target)
+            adv_input = attack_model(model, data)
+            adv_output = model(adv_input)
+            loss = -1 * loss_func(adv_output, target)
+            loss_list[i] = loss
+
+        loss = torch.mean(loss_list)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+    return model
 
 
 def post_tune(config, model, images, train_loader):
