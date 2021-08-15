@@ -194,6 +194,10 @@ def post_test(config, model, images, normal_images, labels):
         trans_initial_output = model(trans_initial_images)
         trans_neighbour_output = model(trans_neighbour_images)
 
+        trans_normal_class = int(torch.argmax(normal_output))
+        trans_initial_class = int(torch.argmax(initial_output))
+        trans_neighbour_class = int(torch.argmax(neighbour_output))
+
         kl_loss_normal = nn.KLDivLoss(size_average=False, log_target=True)(
                     torch.log_softmax(trans_normal_output, dim=1),
                     torch.log_softmax(normal_output, dim=1)
@@ -207,7 +211,10 @@ def post_test(config, model, images, normal_images, labels):
                     torch.log_softmax(neighbour_output, dim=1)
                 )
 
-        print('{:.5f} {:.5f} {:.5f}'.format(kl_loss_normal, kl_loss_initial, kl_loss_neighbour))
+        print('{}: {:.5f} {}: {:.5f} {}: {:.5f}'.format(
+            trans_normal_class, kl_loss_normal,
+            trans_initial_class, kl_loss_initial,
+            trans_neighbour_class, kl_loss_neighbour))
 
         # middle_images = (images.detach() + neighbour_images.detach()) / 2
         # noise = 0 * ((torch.rand_like(middle_images.detach()) * 2 - 1) * epsilon).to(device)  # uniform rand from [-eps, eps]
