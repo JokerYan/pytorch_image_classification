@@ -174,9 +174,9 @@ def post_test(config, model, images, labels):
         global neighbour_counter
         if int(labels) == int(initial_class) or int(labels) == int(adv_class):
             neighbour_counter += 1
-        print(labels, initial_class, adv_class)
+        # print(labels, initial_class, adv_class)
         print(neighbour_counter)
-        input()
+        # input()
 
 
 
