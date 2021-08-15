@@ -142,15 +142,17 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
         first_loss = loss_func(outputs, targets)
 
         # second attack
-        adv_inputs.requires_grad = True
-        second_targets = torch.argmax(outputs, dim=1)
-        loss = loss_func(noise_outputs, second_targets)  # loss to be maximized
+        second_inputs = adv_inputs.detach()
+        second_inputs.requires_grad = True
+        second_outputs = model(second_inputs)
+        second_targets = torch.argmax(second_outputs, dim=1)
+        loss = loss_func(outputs, second_targets)  # loss to be maximized
         input_grad = torch.autograd.grad(loss, adv_inputs)[0]
         delta = alpha * torch.sign(input_grad)
         delta.clamp_(-epsilon, epsilon)
-        second_inputs = adv_inputs + delta
-        second_outputs = model(second_inputs)
-        second_loss = loss_func(second_outputs, targets)  # minimize distance to label
+        second_adv_inputs = adv_inputs + delta
+        second_adv_outputs = model(second_adv_inputs)
+        second_loss = loss_func(second_adv_outputs, targets)  # minimize distance to label
 
         optimizer.zero_grad()
         loss = first_loss + second_loss
