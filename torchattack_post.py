@@ -129,16 +129,16 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
                 int(torch.argmax(normal_output)),
                 int(torch.argmax(adv_output)), int(labels)))
 
-            post_test(config, model, adv_images, labels)
-            # post_tuned_model = post_tune(config, model, adv_images, train_loader)
-            # post_tuned_output = post_tuned_model(adv_images)
+            # post_test(config, model, adv_images, labels)
+            post_tuned_model = post_tune(config, model, adv_images, train_loader)
+            post_tuned_output = post_tuned_model(adv_images)
             # print()
             # print("adv ", adv_output)
             # print("post", post_tuned_output)
             # print(torch.argmax(post_tuned_output), labels)
             # # acc = cal_accuracy(normal_output, labels)
-            acc = cal_accuracy(adv_output, labels)
-            # acc = cal_accuracy(post_tuned_output, labels)
+            # acc = cal_accuracy(adv_output, labels)
+            acc = cal_accuracy(post_tuned_output, labels)
             # acc = cal_accuracy(post_output, labels)
             if attack_target_class == -1:
                 success = cal_accuracy(adv_output, attack_target_list[-1])
@@ -147,7 +147,7 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
             else:
                 success = 0
             print("Batch {} attack success: {}\tdefense acc: {}\n".format(i, success, acc))
-            # input()
+            input()
             success_meter.update(success, 1)
             accuracy_meter.update(acc, 1)
         adv_image_list.append(adv_images)
@@ -236,14 +236,14 @@ def post_tune(config, model, images, train_loader):
 
     original_output = fix_model(images)
     print('original', torch.argmax(original_output), original_output)
+    attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
 
     with torch.enable_grad():
-        # # find neighbour
-        # attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
-        # original_class = torch.argmax(original_output).reshape(1)
-        # neighbour_images = attack_model(images, original_class)
-        # neighbour_outputs = fix_model(neighbour_images)
-        # neighbour_class = torch.argmax(neighbour_outputs).reshape(1)
+        # find neighbour
+        original_class = torch.argmax(original_output).reshape(1)
+        neighbour_images = attack_model(images, original_class)
+        neighbour_output = fix_model(neighbour_images)
+        neighbour_class = torch.argmax(neighbour_output).reshape(1)
         #
         # noise = ((torch.rand_like(images.detach()) * 2 - 1) * epsilon).to(device)  # uniform rand from [-eps, eps]
         # noise_inputs = images.detach() + noise
@@ -259,8 +259,7 @@ def post_tune(config, model, images, train_loader):
                                     params=model.parameters(),
                                     momentum=config.train.momentum,
                                     nesterov=config.train.nesterov)
-        targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(original_output))
-        attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
+        # targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(original_output))
         # targets_list = torch.topk(original_output, k=3).indices.squeeze().detach()
         # target_list = [i for i in range(10)]
         # random.shuffle(target_list)
@@ -277,11 +276,11 @@ def post_tune(config, model, images, train_loader):
         # print('targets_list', targets_list)
 
         for _ in range(5):
-            loss_list = torch.Tensor([0 for _ in range(10)])
-            for i in range(4):
+            loss_list = torch.Tensor([0 for _ in range(3)])
+            for i in range(3):
                 # train_images, train_label = next(iter(train_loader))
                 # images = merge_images(train_images, val_images, device)
-                outputs_list = []
+                # outputs_list = []
                 # targets = targets_list[i % len(targets_list)].reshape([1])
                 # targets = targets_list[1].reshape([1])  # guess target
                 # targets = torch.randint(0, 9, [len(images)]).to(device)
@@ -301,25 +300,36 @@ def post_tune(config, model, images, train_loader):
                 #
                 # adv_inputs = images + delta
                 # attack_model.set_mode_targeted_by_function(lambda image, label: targets)
-                adv_inputs = attack_model(images, targets)
-                adv_inputs.requires_grad = True
-                outputs = model(adv_inputs.detach())
-                adv_loss = loss_func(outputs, targets)
+                # adv_inputs = attack_model(images, targets)
+                # adv_inputs.requires_grad = True
+                # outputs = model(adv_inputs.detach())
+                # adv_loss = loss_func(outputs, targets)
 
                 # update target
-                outputs_list.append(outputs)
-                normal_output = model(images.detach())
-                normal_loss = loss_func(normal_output, targets)
+                # outputs_list.append(outputs)
+                # normal_output = model(images.detach())
+                # normal_loss = loss_func(normal_output, targets)
                 # loss_list[i] = torch.relu(adv_loss - normal_loss)  # untargeted
                 # loss_list[i] = noise_loss - adv_loss  # targeted
-                loss_list[i] = adv_loss  # untargeted
+                # loss_list[i] = adv_loss  # untargeted
                 # loss_list[i] = -1 * adv_loss  # targeted
-                print(int(targets.item()),
-                      '{:.4f}'.format(float(torch.relu(adv_loss - normal_loss))),
-                      '{:.4f}'.format(float(adv_loss)),
-                      outputs)
-                targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(outputs))
+                # print(int(targets.item()),
+                #       '{:.4f}'.format(float(torch.relu(adv_loss - normal_loss))),
+                #       '{:.4f}'.format(float(adv_loss)),
+                #       outputs)
+                # targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(outputs))
                 # print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
+
+                original_output = model(images.detach())
+                neighbour_output = model(neighbour_images.detach())
+                kl_loss = nn.KLDivLoss(size_average=False, log_target=True)(
+                    torch.log_softmax(original_output, dim=1),
+                    torch.log_softmax(neighbour_output, dim=1)
+                )
+                loss_list[i] = kl_loss
+                print('ori', original_output)
+                print('nei', neighbour_output)
+                print(kl_loss)
 
             # loss = loss_func(outputs, targets)
             # kl_loss = nn.KLDivLoss(size_average=False, log_target=True)(
