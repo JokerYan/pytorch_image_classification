@@ -162,7 +162,7 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
 def test_random(config, model, image):
     epsilon = 8 / 255
     print('ori', int(torch.argmax(model(image))))
-    transform = torch_transforms.RandomResizedCrop(size=32, scale=(1/8, 1/10))
+    transform = torch_transforms.RandomResizedCrop(size=32, scale=(1/10, 1/8))
     # random_image = torch.rand_like(image)
     random_image = transform(image)
     print(random_image[0][0])
