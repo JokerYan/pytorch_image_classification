@@ -178,7 +178,7 @@ def post_test(config, model, images, labels):
             mix_output = model(mix_images)
             mix_class = torch.argmax(mix_output)
             mix_class_correct_list.append(1 if int(mix_class) == int(labels) else 0)
-        print(mix_class)
+        print(mix_class_correct_list)
 
         global neighbour_counter
         global total_counter
