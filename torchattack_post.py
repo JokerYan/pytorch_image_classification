@@ -158,6 +158,7 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
 
 total_counter = 0
 neighbour_counter = 0
+mode_counter = 0
 def post_test(config, model, images, labels):
     epsilon = 8 / 255
     attack_model = torchattacks.PGD(model, eps=8 / 255, alpha=2 / 255, steps=20)
@@ -180,15 +181,19 @@ def post_test(config, model, images, labels):
             mix_output = model(mix_images)
             mix_class = torch.argmax(mix_output)
             mix_class_correct_list.append(1 if int(mix_class) == int(labels) else 0)
-        print(mix_class_correct_list)
+        print(mix_class_correct_list, int(torch.mode(torch.Tensor(mix_class_correct_list)).values))
 
         global neighbour_counter
         global total_counter
         total_counter += 1
+        if int(torch.mode(torch.Tensor(mix_class_correct_list)).values):
+            global mode_counter
+            mode_counter += 1
         if int(labels) == int(initial_class) or int(labels) == int(adv_class):
             neighbour_counter += 1
         print(int(labels), int(initial_class), int(adv_class))
         print(neighbour_counter, '/', total_counter)
+        print(mode_counter, '/', total_counter)
         # input()
 
 
