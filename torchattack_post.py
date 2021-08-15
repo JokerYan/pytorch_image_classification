@@ -159,8 +159,9 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
 
 def transform_image(image):
     transform = torch_transforms.Compose([
-        torch_transforms.RandomHorizontalFlip(),
-        torch_transforms.RandomVerticalFlip(),
+        # torch_transforms.RandomHorizontalFlip(),
+        # torch_transforms.RandomVerticalFlip(),
+        torch_transforms.RandomSizedCrop(),
     ])
     return transform(image)
 
@@ -211,7 +212,7 @@ def post_test(config, model, images, normal_images, labels):
                     torch.log_softmax(neighbour_output, dim=1)
                 )
 
-        print('{}: {:.5f} {}: {:.5f} {}: {:.5f}'.format(
+        print('{}:{:.5f}  {}:{:.5f}  {}:{:.5f}'.format(
             trans_normal_class, kl_loss_normal,
             trans_initial_class, kl_loss_initial,
             trans_neighbour_class, kl_loss_neighbour))
