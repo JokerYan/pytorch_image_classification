@@ -130,36 +130,29 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
         noise_inputs.requires_grad = True
         noise_outputs = model(noise_inputs)
 
-        if attack_target_class is None:
-            # un-targeted attack
-            loss = loss_func(noise_outputs, targets)  # loss to be maximized
-            input_grad = torch.autograd.grad(loss, noise_inputs)[0]
-            delta = delta + alpha * torch.sign(input_grad)
-            delta.clamp_(-epsilon, epsilon)
-        elif attack_target_class == -1:
-            # random targeted attack
-            attack_target = torch.remainder(torch.randint(1, 9, targets.shape).cuda() + targets, 10)
-
-            loss = -1 * loss_func(noise_outputs, attack_target)  # loss to be minimized
-            input_grad = torch.autograd.grad(loss, noise_inputs)[0]
-            delta = delta + alpha * torch.sign(input_grad)
-            delta.clamp_(-epsilon, epsilon)
-        else:
-            # targeted attack
-            attack_target = torch.ones_like(targets) * attack_target_class
-            # avoid target == attack target
-            attack_target[targets == attack_target] = (attack_target_class + 1) % config.dataset.n_classes
-
-            loss = -1 * loss_func(noise_outputs, attack_target)  # loss to be minimized
-            input_grad = torch.autograd.grad(loss, noise_inputs)[0]
-            delta = delta + alpha * torch.sign(input_grad)
-            delta.clamp_(-epsilon, epsilon)
-
-        optimizer.zero_grad()
+        assert attack_target_class is None
+        # first attack
+        # un-targeted attack
+        loss = loss_func(noise_outputs, targets)  # loss to be maximized
+        input_grad = torch.autograd.grad(loss, noise_inputs)[0]
+        delta = delta + alpha * torch.sign(input_grad)
+        delta.clamp_(-epsilon, epsilon)
         adv_inputs = data + delta
         outputs = model(adv_inputs)
+        first_loss = loss_func(outputs, targets)
 
-        loss = loss_func(outputs, targets)
+        # second attack
+        second_targets = torch.argmax(outputs, dim=1)
+        loss = loss_func(noise_outputs, second_targets)  # loss to be maximized
+        input_grad = torch.autograd.grad(loss, adv_inputs)[0]
+        delta = alpha * torch.sign(input_grad)
+        delta.clamp_(-epsilon, epsilon)
+        second_inputs = adv_inputs + delta
+        second_outputs = model(second_inputs)
+        second_loss = loss_func(second_outputs, targets)  # minimize distance to label
+
+        optimizer.zero_grad()
+        loss = first_loss + second_loss
         loss.backward()
         optimizer.step()
 
