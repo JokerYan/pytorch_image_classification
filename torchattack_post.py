@@ -129,7 +129,8 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
                 int(torch.argmax(normal_output)),
                 int(torch.argmax(adv_output)), int(labels)))
 
-            post_test(config, model, adv_images, data, labels)
+            test_random(config, model, data)
+            # post_test(config, model, adv_images, data, labels)
             # post_tuned_model = post_tune(config, model, adv_images, train_loader)
             # post_tuned_output = post_tuned_model(adv_images)
             # print()
@@ -155,6 +156,19 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
     logger.info(f'Success: {success_meter.avg:.4f} Accuracy {accuracy_meter.avg:.4f} Delta {delta_meter.avg:.4f}')
 
     return adv_image_list, accuracy_meter.avg, delta_meter.avg
+
+
+def test_random(config, model, image):
+    epsilon = 8 / 255
+    random_image = torch.rand_like(image)
+    output = model(random_image)
+    print(int(torch.argmax(output)))
+    for i in range(10):
+        noise_image = random_image + (torch.rand_like(random_image.detach()) * 2 - 1) * epsilon
+        noise_output = model(noise_image)
+        print(int(torch.argmax(noise_output)))
+    input()
+
 
 
 def transform_image(image):
