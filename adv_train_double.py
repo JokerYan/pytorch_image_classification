@@ -155,7 +155,7 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
         second_loss = loss_func(second_adv_outputs, targets)  # minimize distance to label
 
         optimizer.zero_grad()
-        loss = first_loss + second_loss
+        loss = second_loss
         loss.backward()
         optimizer.step()
 
