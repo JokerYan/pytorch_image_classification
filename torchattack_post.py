@@ -208,17 +208,26 @@ def post_tune(config, model, images, train_loader):
         targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(original_output))
         attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
         # targets_list = torch.topk(original_output, k=3).indices.squeeze().detach()
-        target_list = [i for i in range(10)]
-        random.shuffle(target_list)
-        targets_list = torch.Tensor(target_list).long().to(device)
+        # target_list = [i for i in range(10)]
+        # random.shuffle(target_list)
+        # targets_list = torch.Tensor(target_list).long().to(device)
+
+        # find target candidates
+        targets_list = torch.Tensor([-1, -1])
+        targets_list[0] = int(torch.argmax(original_output))
+        adv_inputs = attack_model(images, targets)
+        adv_inputs.requires_grad = True
+        adv_outputs = model(adv_inputs.detach())
+        targets_list[1] = int(torch.argmax(adv_outputs))
+        print('targets_list', targets_list)
 
         for _ in range(5):
             loss_list = torch.Tensor([0 for _ in range(10)])
-            for i in range(5):
+            for i in range(4):
                 # train_images, train_label = next(iter(train_loader))
                 # images = merge_images(train_images, val_images, device)
                 outputs_list = []
-                # targets = targets_list[i % len(targets_list)].reshape([1])
+                targets = targets_list[i % len(targets_list)].reshape([1])
                 # targets = targets_list[1].reshape([1])  # guess target
                 # targets = torch.randint(0, 9, [len(images)]).to(device)
                 # targets = train_label.to(device)
@@ -254,7 +263,7 @@ def post_tune(config, model, images, train_loader):
                       '{:.4f}'.format(float(torch.relu(adv_loss - normal_loss))),
                       '{:.4f}'.format(float(adv_loss)),
                       outputs)
-                targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(outputs))
+                # targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(outputs))
                 # print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
 
             # loss = loss_func(outputs, targets)
