@@ -132,10 +132,10 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
             # post_test(config, model, adv_images, labels)
             post_tuned_model = post_tune(config, model, adv_images, train_loader)
             post_tuned_output = post_tuned_model(adv_images)
-            # print()
-            # print("adv ", adv_output)
-            # print("post", post_tuned_output)
-            # print(torch.argmax(post_tuned_output), labels)
+            print()
+            print("adv ", adv_output)
+            print("post", post_tuned_output)
+            print(torch.argmax(post_tuned_output), labels)
             # # acc = cal_accuracy(normal_output, labels)
             # acc = cal_accuracy(adv_output, labels)
             acc = cal_accuracy(post_tuned_output, labels)
@@ -255,7 +255,7 @@ def post_tune(config, model, images, train_loader):
         # input_grad = torch.autograd.grad(noise_loss, noise_inputs)[0]
 
         # optimizer = create_optimizer(config, model)
-        optimizer = torch.optim.SGD(lr=0.0001,
+        optimizer = torch.optim.SGD(lr=0.0005,
                                     params=model.parameters(),
                                     momentum=config.train.momentum,
                                     nesterov=config.train.nesterov)
