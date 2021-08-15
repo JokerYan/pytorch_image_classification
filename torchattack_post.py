@@ -183,7 +183,7 @@ def transform_image(image):
     transform = torch_transforms.Compose([
         # torch_transforms.RandomHorizontalFlip(),
         # torch_transforms.RandomVerticalFlip(),
-        torch_transforms.RandomResizedCrop(size=32, scale=(1/4, 1/2)),
+        torch_transforms.RandomResizedCrop(size=32, scale=(1/8, 1/4)),
         # torch_transforms.GaussianBlur(kernel_size=9),
         # torch_transforms.RandomAutocontrast(),
     ])
