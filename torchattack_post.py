@@ -265,7 +265,8 @@ def post_tune(config, model, images, train_loader):
             # amplitude_regularization = torch.sum(torch.abs(outputs_list[0])) + torch.sum(torch.abs(outputs_list[0]))
             # loss = kl_loss + 0 * amplitude_regularization
             # print(loss, kl_loss, 0 * amplitude_regularization)
-            total_loss = torch.mean(torch.Tensor(loss_list))
+            adjusted_loss_list = loss_list - torch.min(loss_list)
+            total_loss = torch.mean(torch.Tensor(adjusted_loss_list))
             # total_loss.requires_grad = True
             loss = total_loss
             print(loss)
