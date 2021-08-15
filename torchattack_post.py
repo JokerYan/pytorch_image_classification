@@ -156,6 +156,7 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
     return adv_image_list, accuracy_meter.avg, delta_meter.avg
 
 
+total_counter = 0
 neighbour_counter = 0
 def post_test(config, model, images, labels):
     attack_model = torchattacks.PGD(model, eps=8 / 255, alpha=2 / 255, steps=20)
@@ -171,11 +172,17 @@ def post_test(config, model, images, labels):
         adv_output = model(adv_images)
         adv_class = torch.argmax(adv_output)
 
+        mix_images = (images + adv_images) / 2
+        mix_output = model(mix_images)
+        mix_class = torch.argmax(mix_output)
+
         global neighbour_counter
+        global total_counter
+        total_counter += 1
         if int(labels) == int(initial_class) or int(labels) == int(adv_class):
             neighbour_counter += 1
-        # print(labels, initial_class, adv_class)
-        print(neighbour_counter)
+        print(int(labels), int(initial_class), int(adv_class), int(mix_class))
+        print(neighbour_counter, '/', total_counter)
         # input()
 
 
