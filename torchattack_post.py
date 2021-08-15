@@ -246,9 +246,9 @@ def post_tune(config, model, images, train_loader):
                 outputs_list.append(outputs)
                 normal_output = model(images.detach())
                 normal_loss = loss_func(normal_output, targets)
-                loss_list[i] = torch.relu(adv_loss - normal_loss)  # untargeted
+                # loss_list[i] = torch.relu(adv_loss - normal_loss)  # untargeted
                 # loss_list[i] = noise_loss - adv_loss  # targeted
-                # loss_list[i] = adv_loss  # untargeted
+                loss_list[i] = adv_loss  # untargeted
                 # loss_list[i] = -1 * adv_loss  # targeted
                 print(int(targets.item()),
                       '{:.4f}'.format(float(torch.relu(adv_loss - normal_loss))),
@@ -265,8 +265,8 @@ def post_tune(config, model, images, train_loader):
             # amplitude_regularization = torch.sum(torch.abs(outputs_list[0])) + torch.sum(torch.abs(outputs_list[0]))
             # loss = kl_loss + 0 * amplitude_regularization
             # print(loss, kl_loss, 0 * amplitude_regularization)
-            adjusted_loss_list = loss_list - torch.min(loss_list)
-            total_loss = -1 * torch.mean(torch.Tensor(adjusted_loss_list))
+            # adjusted_loss_list = loss_list - torch.min(loss_list)
+            total_loss = torch.mean(torch.Tensor(loss_list))
             # total_loss.requires_grad = True
             loss = total_loss
             print(loss)
