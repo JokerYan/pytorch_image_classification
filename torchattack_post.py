@@ -159,10 +159,12 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
     return adv_image_list, accuracy_meter.avg, delta_meter.avg
 
 
-def test_random(config, model, reference_image):
+def test_random(config, model, image):
     epsilon = 8 / 255
-    random_image = torch.rand_like(reference_image)
-    random_image = torchvision.transforms.GaussianBlur(kernel_size=5)(random_image)
+    print('ori', int(torch.argmax(model(image))))
+    transform = torch_transforms.RandomResizedCrop(size=32, scale=(2, 3))
+    # random_image = torch.rand_like(image)
+    random_image = transform(image)
     output = model(random_image)
     targets = torch.argmax(output, dim=1)
     print(int(targets))
@@ -174,7 +176,6 @@ def test_random(config, model, reference_image):
             adv_class = torch.argmax(adv_output, dim=1)
             print(int(adv_class))
     input()
-
 
 
 def transform_image(image):
