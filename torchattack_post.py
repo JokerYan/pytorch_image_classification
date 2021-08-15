@@ -159,6 +159,7 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
 total_counter = 0
 neighbour_counter = 0
 def post_test(config, model, images, labels):
+    epsilon = 8 / 255
     attack_model = torchattacks.PGD(model, eps=8 / 255, alpha=2 / 255, steps=20)
     loss_func = nn.CrossEntropyLoss()
     device = torch.device(config.device)
@@ -174,7 +175,8 @@ def post_test(config, model, images, labels):
 
         mix_class_correct_list = []
         for i in [0.1 * x for x in range(1, 10)]:
-            mix_images = i * images + (1 - i) * adv_images
+            noise = ((torch.rand_like(images.detach()) * 2 - 1) * epsilon).to(device)  # uniform rand from [-eps, eps]
+            mix_images = i * images + (1 - i) * adv_images + noise
             mix_output = model(mix_images)
             mix_class = torch.argmax(mix_output)
             mix_class_correct_list.append(1 if int(mix_class) == int(labels) else 0)
