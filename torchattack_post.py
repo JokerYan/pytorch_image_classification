@@ -298,7 +298,7 @@ def post_train(config, model, images, train_loader):
     model = copy.deepcopy(model)
     fix_model = copy.deepcopy(model)
     attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
-    optimizer = torch.optim.SGD(lr=0.1,
+    optimizer = torch.optim.SGD(lr=0.01,
                                 params=model.parameters(),
                                 momentum=config.train.momentum,
                                 nesterov=config.train.nesterov)
@@ -322,10 +322,10 @@ def post_train(config, model, images, train_loader):
             effective_count += 1
             # targeted attack
             target = original_class if int(label) == original_class else neighbour_class
-            attack_model.set_mode_targeted_by_function(lambda im, la: target)
+            # attack_model.set_mode_targeted_by_function(lambda im, la: target)
             adv_input = attack_model(data, label)
             adv_output = model(adv_input)
-            loss = -1 * loss_func(adv_output, target)
+            loss = loss_func(adv_output, target)
             loss_list[i] = loss
             print(int(original_class), int(torch.argmax(adv_output)), loss)
 
