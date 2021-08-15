@@ -149,7 +149,7 @@ def train(epoch, config, model, optimizer, scheduler, loss_func, train_loader,
         swap_targets = torch.empty_like(targets).to(device)
         swap_targets[batch_size//2:] = targets[batch_size//2:].detach()
         swap_targets[:batch_size//2] = targets[:batch_size//2].detach()
-        mix_ratio = 0.3
+        mix_ratio = 0.5
         mix_data = data.detach() * (1 - mix_ratio) + swap_data * mix_ratio
         mix_targets = swap_targets
         mix_outputs = model(mix_data)
