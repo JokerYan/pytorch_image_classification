@@ -255,7 +255,7 @@ def post_tune(config, model, images, train_loader):
         # input_grad = torch.autograd.grad(noise_loss, noise_inputs)[0]
 
         # optimizer = create_optimizer(config, model)
-        optimizer = torch.optim.SGD(lr=0.0015,
+        optimizer = torch.optim.SGD(lr=0.0001,
                                     params=model.parameters(),
                                     momentum=config.train.momentum,
                                     nesterov=config.train.nesterov)
