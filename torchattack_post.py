@@ -131,16 +131,16 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
                 int(torch.argmax(adv_output)), int(labels)))
 
             # test_random(config, model, data)
-            post_test(config, model, adv_images, data, labels)
-            # post_tuned_model = post_tune(config, model, adv_images, train_loader)
-            # post_tuned_output = post_tuned_model(adv_images)
+            # post_test(config, model, adv_images, data, labels)
+            post_tuned_model = post_tune(config, model, adv_images, train_loader)
+            post_tuned_output = post_tuned_model(adv_images)
             # print()
             # print("adv ", adv_output)
             # print("post", post_tuned_output)
             # print(torch.argmax(post_tuned_output), labels)
             # # acc = cal_accuracy(normal_output, labels)
-            acc = cal_accuracy(adv_output, labels)
-            # acc = cal_accuracy(post_tuned_output, labels)
+            # acc = cal_accuracy(adv_output, labels)
+            acc = cal_accuracy(post_tuned_output, labels)
             # acc = cal_accuracy(post_output, labels)
             if attack_target_class == -1:
                 success = cal_accuracy(adv_output, attack_target_list[-1])
@@ -326,9 +326,9 @@ def post_tune(config, model, images, train_loader):
                                     nesterov=config.train.nesterov)
         # targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(original_output))
         # targets_list = torch.topk(original_output, k=3).indices.squeeze().detach()
-        # target_list = [i for i in range(10)]
-        # random.shuffle(target_list)
-        # targets_list = torch.Tensor(target_list).long().to(device)
+        target_list = [i for i in range(10)]
+        random.shuffle(target_list)
+        targets_list = torch.Tensor(target_list).long().to(device)
 
         # find target candidates
         # targets_list = torch.Tensor([-1, -1])
@@ -340,13 +340,15 @@ def post_tune(config, model, images, train_loader):
         # targets_list = targets_list.long().to(device)
         # print('targets_list', targets_list)
 
-        for _ in range(5):
-            loss_list = torch.Tensor([0 for _ in range(3)])
-            for i in range(3):
+        for _ in range(3):
+            loss_list = torch.Tensor([0 for _ in range(10)])
+            for i in range(10):
                 # train_images, train_label = next(iter(train_loader))
                 # images = merge_images(train_images, val_images, device)
                 # outputs_list = []
-                # targets = targets_list[i % len(targets_list)].reshape([1])
+                targets = targets_list[i % len(targets_list)].reshape([1])
+                if int(targets) == int(original_class) or int(targets) == int(neighbour_class):
+                    continue
                 # targets = targets_list[1].reshape([1])  # guess target
                 # targets = torch.randint(0, 9, [len(images)]).to(device)
                 # targets = train_label.to(device)
@@ -364,11 +366,11 @@ def post_tune(config, model, images, train_loader):
                 # delta.clamp_(-epsilon, epsilon)
                 #
                 # adv_inputs = images + delta
-                # attack_model.set_mode_targeted_by_function(lambda image, label: targets)
-                # adv_inputs = attack_model(images, targets)
-                # adv_inputs.requires_grad = True
-                # outputs = model(adv_inputs.detach())
-                # adv_loss = loss_func(outputs, targets)
+                attack_model.set_mode_targeted_by_function(lambda image, label: targets)
+                adv_inputs = attack_model(images, targets)
+                adv_inputs.requires_grad = True
+                adv_outputs = model(adv_inputs.detach())
+                adv_loss = loss_func(adv_outputs, targets)
 
                 # update target
                 # outputs_list.append(outputs)
@@ -377,7 +379,7 @@ def post_tune(config, model, images, train_loader):
                 # loss_list[i] = torch.relu(adv_loss - normal_loss)  # untargeted
                 # loss_list[i] = noise_loss - adv_loss  # targeted
                 # loss_list[i] = adv_loss  # untargeted
-                # loss_list[i] = -1 * adv_loss  # targeted
+                loss_list[i] = -1 * adv_loss  # targeted
                 # print(int(targets.item()),
                 #       '{:.4f}'.format(float(torch.relu(adv_loss - normal_loss))),
                 #       '{:.4f}'.format(float(adv_loss)),
@@ -385,24 +387,24 @@ def post_tune(config, model, images, train_loader):
                 # targets = torch.ones([len(images)], dtype=torch.long).to(device) * int(torch.argmax(outputs))
                 # print(targets, torch.softmax(outputs, dim=1), torch.softmax(original_output, dim=1))
 
-                cur_original_output = model(images.detach())
-                cur_neighbour_output = model(neighbour_images.detach())
-                kl_loss_middle = nn.KLDivLoss(size_average=False, log_target=True)(
-                    torch.log_softmax(cur_original_output, dim=1),
-                    torch.log_softmax(cur_neighbour_output, dim=1)
-                )
-                kl_loss_ori = nn.KLDivLoss(size_average=False, log_target=True)(
-                    torch.log_softmax(cur_original_output, dim=1),
-                    torch.log_softmax(original_output.detach(), dim=1)
-                )
-                kl_loss_nei = nn.KLDivLoss(size_average=False, log_target=True)(
-                    torch.log_softmax(cur_neighbour_output, dim=1),
-                    torch.log_softmax(neighbour_output.detach(), dim=1)
-                )
-                loss_list[i] = kl_loss_middle + kl_loss_ori + kl_loss_nei
-                print('ori', cur_original_output)
-                print('nei', cur_neighbour_output)
-                print('{:.4f} {:.4f} {:.4f}'.format(float(kl_loss_middle), float(kl_loss_ori), float(kl_loss_nei)))
+                # cur_original_output = model(images.detach())
+                # cur_neighbour_output = model(neighbour_images.detach())
+                # kl_loss_middle = nn.KLDivLoss(size_average=False, log_target=True)(
+                #     torch.log_softmax(cur_original_output, dim=1),
+                #     torch.log_softmax(cur_neighbour_output, dim=1)
+                # )
+                # kl_loss_ori = nn.KLDivLoss(size_average=False, log_target=True)(
+                #     torch.log_softmax(cur_original_output, dim=1),
+                #     torch.log_softmax(original_output.detach(), dim=1)
+                # )
+                # kl_loss_nei = nn.KLDivLoss(size_average=False, log_target=True)(
+                #     torch.log_softmax(cur_neighbour_output, dim=1),
+                #     torch.log_softmax(neighbour_output.detach(), dim=1)
+                # )
+                # loss_list[i] = kl_loss_middle + kl_loss_ori + kl_loss_nei
+                # print('ori', cur_original_output)
+                # print('nei', cur_neighbour_output)
+                # print('{:.4f} {:.4f} {:.4f}'.format(float(kl_loss_middle), float(kl_loss_ori), float(kl_loss_nei)))
 
             # loss = loss_func(outputs, targets)
             # kl_loss = nn.KLDivLoss(size_average=False, log_target=True)(
