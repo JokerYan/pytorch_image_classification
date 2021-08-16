@@ -150,10 +150,10 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
                 success = cal_accuracy(adv_output, torch.Tensor([attack_target_class]).to(device))
             else:
                 success = 0
-            print("Batch {} attack success: {}\tdefense acc: {}\n".format(i, success, acc))
-            input()
             success_meter.update(success, 1)
             accuracy_meter.update(acc, 1)
+            print("Batch {} attack success: {}\tdefense acc: {}({})\n".format(i, success, acc, accuracy_meter.avg))
+            input()
         adv_image_list.append(adv_images)
 
     logger.info(f'Success: {success_meter.avg:.4f} Accuracy {accuracy_meter.avg:.4f} Delta {delta_meter.avg:.4f}')
@@ -312,14 +312,27 @@ def post_train(config, model, images, train_loader):
 
         for _ in range(5):
             # reinforce train
+            count_cap = 8
             effective_count = 0
-            loss_list = torch.Tensor([0 for _ in range(64)]).to(device)
-            for i in range(64):
+            effective_original_count = 0
+            effective_neighbour_count = 0
+            loss_list = torch.Tensor([0 for _ in range(count_cap * 2)]).to(device)
+            while effective_count < count_cap * 2:
                 data, label = next(iter(train_loader))
                 data = data.to(device)
                 label = label.to(device)
                 if int(label) != int(original_class) and int(label) != int(neighbour_class):
                     continue
+                if int(label) == int(original_class):
+                    if effective_original_count > count_cap:
+                        continue
+                    else:
+                        effective_original_count += 1
+                if int(label) == int(neighbour_class):
+                    if effective_neighbour_count > count_cap:
+                        continue
+                    else:
+                        effective_neighbour_count +=1
                 effective_count += 1
                 # targeted attack
                 target = neighbour_class if int(label) == original_class else original_class
@@ -329,7 +342,7 @@ def post_train(config, model, images, train_loader):
                 adv_output = model(adv_input)
                 loss_pos = loss_func(adv_output, label)
                 loss_neg = loss_func(adv_output, target)
-                loss_list[i] = loss_pos
+                loss_list[effective_count] = loss_pos
                 print(int(label), int(torch.argmax(adv_output)), loss_list[i])
 
             loss = torch.sum(loss_list) / effective_count
