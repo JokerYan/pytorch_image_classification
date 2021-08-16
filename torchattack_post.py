@@ -310,6 +310,9 @@ def post_train(config, model, images, train_loader):
         neighbour_output = fix_model(neighbour_images)
         neighbour_class = torch.argmax(neighbour_output).reshape(1)
 
+        if original_class == neighbour_class:
+            return model
+
         for _ in range(5):
             # reinforce train
             count_cap = 8
