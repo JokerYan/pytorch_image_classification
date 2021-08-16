@@ -354,8 +354,8 @@ def post_train(config, model, images, train_loader):
                 target_list[effective_count - 1] = target
 
             data = input_list.detach()
-            label = label_list.detach()
-            target = target_list.detach()
+            label = label_list.long().detach()
+            target = target_list.long().detach()
 
             # generate fgsm adv examples
             delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
