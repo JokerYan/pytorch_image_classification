@@ -318,12 +318,14 @@ def post_train(config, model, images, train_loader):
 
         for _ in range(5):
             # reinforce train
-            count_cap = 8
+            count_cap = 64
             effective_count = 0
             effective_original_count = 0
             effective_neighbour_count = 0
             defense_success = 0
-            loss_list = torch.Tensor([0 for _ in range(count_cap * 2)]).to(device)
+            # loss_list = torch.Tensor([0 for _ in range(count_cap * 2)]).to(device)
+            input_list = torch.Tensor([images for _ in range(count_cap * 2)])
+            target_list = torch.Tensor([0 for _ in range(count_cap * 2)])
             while effective_count < count_cap * 2:
                 data, label = next(iter(train_loader))
                 data = data.to(device)
@@ -346,34 +348,37 @@ def post_train(config, model, images, train_loader):
                 assert target != label
                 # attack_model.set_mode_targeted_by_function(lambda im, la: target)
                 # adv_input = attack_model(data, label)
+                input_list[effective_count - 1] = data
+                target_list[effective_count - 1] = label
 
-                # generate fgsm adv examples
-                delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
-                noise_input = data + delta
-                noise_input.requires_grad = True
-                noise_output = model(noise_input)
-                loss = loss_func(noise_output, target)  # loss to be maximized
-                input_grad = torch.autograd.grad(loss, noise_input)[0]
-                delta = delta + alpha * torch.sign(input_grad)
-                delta.clamp_(-epsilon, epsilon)
-                adv_input = data + delta
+            data = input_list.detach()
+            label = target_list.detach()
 
-                adv_input = torch.vstack([adv_input, adv_input])
-                print(adv_input.shape)
+            # generate fgsm adv examples
+            delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
+            noise_input = data + delta
+            noise_input.requires_grad = True
+            noise_output = model(noise_input)
+            loss = loss_func(noise_output, target)  # loss to be maximized
+            input_grad = torch.autograd.grad(loss, noise_input)[0]
+            delta = delta + alpha * torch.sign(input_grad)
+            delta.clamp_(-epsilon, epsilon)
+            adv_input = data + delta
 
-                adv_output = model(adv_input.detach())
-                adv_class = torch.argmax(adv_output)
-                defense_success += 1 if adv_class == label else 0
-                loss_pos = loss_func(adv_output, label)
-                loss_neg = loss_func(adv_output, target)
-                loss_list[effective_count - 1] = loss_pos
-                # print(int(label), int(torch.argmax(adv_output)), loss_list[effective_count - 1])
+            adv_output = model(adv_input.detach())
+            # adv_class = torch.argmax(adv_output)
+            loss_pos = loss_func(adv_output, label)
+            loss_neg = loss_func(adv_output, target)
+            # loss_list[effective_count - 1] = loss_pos
+            # print(int(label), int(torch.argmax(adv_output)), loss_list[effective_count - 1])
 
-            loss = torch.sum(loss_list) / effective_count
-            print('loss: {:.4f}  acc: {:.4f}'.format(loss, defense_success / (count_cap * 2)))
+            # loss = torch.mean(loss_list)
+            loss = loss_pos
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            defense_acc = cal_accuracy(adv_output, label)
+            print('loss: {:.4f}  acc: {:.4f}'.format(loss, defense_acc))
     return model
 
 
