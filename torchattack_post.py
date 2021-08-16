@@ -310,32 +310,33 @@ def post_train(config, model, images, train_loader):
         neighbour_output = fix_model(neighbour_images)
         neighbour_class = torch.argmax(neighbour_output).reshape(1)
 
-        # reinforce train
-        effective_count = 0
-        loss_list = torch.Tensor([0 for _ in range(64)]).to(device)
-        for i in range(64):
-            data, label = next(iter(train_loader))
-            data = data.to(device)
-            label = label.to(device)
-            if int(label) != int(original_class) and int(label) != int(neighbour_class):
-                continue
-            effective_count += 1
-            # targeted attack
-            target = neighbour_class if int(label) == original_class else original_class
-            assert target != label
-            # attack_model.set_mode_targeted_by_function(lambda im, la: target)
-            adv_input = attack_model(data, label)
-            adv_output = model(adv_input)
-            loss_pos = loss_func(adv_output, label)
-            loss_neg = loss_func(adv_output, target)
-            loss_list[i] = loss_pos
-            print(int(label), int(torch.argmax(adv_output)), loss_list[i])
+        for _ in range(3):
+            # reinforce train
+            effective_count = 0
+            loss_list = torch.Tensor([0 for _ in range(64)]).to(device)
+            for i in range(64):
+                data, label = next(iter(train_loader))
+                data = data.to(device)
+                label = label.to(device)
+                if int(label) != int(original_class) and int(label) != int(neighbour_class):
+                    continue
+                effective_count += 1
+                # targeted attack
+                target = neighbour_class if int(label) == original_class else original_class
+                assert target != label
+                # attack_model.set_mode_targeted_by_function(lambda im, la: target)
+                adv_input = attack_model(data, label)
+                adv_output = model(adv_input)
+                loss_pos = loss_func(adv_output, label)
+                loss_neg = loss_func(adv_output, target)
+                loss_list[i] = loss_pos
+                print(int(label), int(torch.argmax(adv_output)), loss_list[i])
 
-        loss = torch.sum(loss_list) / effective_count
-        print(loss)
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+            loss = torch.sum(loss_list) / effective_count
+            print(loss)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
     return model
 
 
