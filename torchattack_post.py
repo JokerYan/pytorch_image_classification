@@ -325,6 +325,7 @@ def post_train(config, model, images, train_loader):
             # defense_success = 0
             # loss_list = torch.Tensor([0 for _ in range(count_cap * 2)]).to(device)
             input_list = torch.zeros([count_cap*2, 3, 32, 32]).to(device)
+            label_list = torch.zeros([count_cap*2]).to(device)
             target_list = torch.zeros([count_cap*2]).to(device)
             while effective_count < count_cap * 2:
                 data, label = next(iter(train_loader))
@@ -349,10 +350,12 @@ def post_train(config, model, images, train_loader):
                 # attack_model.set_mode_targeted_by_function(lambda im, la: target)
                 # adv_input = attack_model(data, label)
                 input_list[effective_count - 1] = data
-                target_list[effective_count - 1] = label
+                label_list[effective_count - 1] = label
+                target_list[effective_count - 1] = target
 
             data = input_list.detach()
-            label = target_list.detach()
+            label = label_list.detach()
+            target = target_list.detach()
 
             # generate fgsm adv examples
             delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
