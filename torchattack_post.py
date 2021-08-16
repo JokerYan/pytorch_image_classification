@@ -316,6 +316,7 @@ def post_train(config, model, images, train_loader):
             effective_count = 0
             effective_original_count = 0
             effective_neighbour_count = 0
+            defense_success = 0
             loss_list = torch.Tensor([0 for _ in range(count_cap * 2)]).to(device)
             while effective_count < count_cap * 2:
                 data, label = next(iter(train_loader))
@@ -340,13 +341,15 @@ def post_train(config, model, images, train_loader):
                 # attack_model.set_mode_targeted_by_function(lambda im, la: target)
                 adv_input = attack_model(data, label)
                 adv_output = model(adv_input)
+                adv_class = torch.argmax(adv_output)
+                defense_success += 1 if adv_class == label else 0
                 loss_pos = loss_func(adv_output, label)
                 loss_neg = loss_func(adv_output, target)
                 loss_list[effective_count - 1] = loss_pos
                 print(int(label), int(torch.argmax(adv_output)), loss_list[effective_count - 1])
 
             loss = torch.sum(loss_list) / effective_count
-            print(loss)
+            print('loss: {:.4f}  acc: {:.4f}'.format(loss, defense_success / (count_cap * 2)))
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
