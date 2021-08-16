@@ -358,7 +358,7 @@ def post_train(config, model, images, train_loader):
                 delta.clamp_(-epsilon, epsilon)
                 adv_input = data + delta
 
-                adv_input = torch.hstack([adv_input, adv_input])
+                adv_input = torch.vstack([adv_input, adv_input])
                 print(adv_input.shape)
 
                 adv_output = model(adv_input.detach())
