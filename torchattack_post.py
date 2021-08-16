@@ -291,14 +291,14 @@ def merge_images(train_images, val_images, device):
 
 
 def post_train(config, model, images, train_loader):
-    alpha = 4 / 255
+    alpha = 2 / 255
     epsilon = 8 / 255
     loss_func = nn.CrossEntropyLoss()
     device = torch.device(config.device)
     model = copy.deepcopy(model)
     fix_model = copy.deepcopy(model)
     attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
-    optimizer = torch.optim.SGD(lr=0.002,
+    optimizer = torch.optim.SGD(lr=0.001,
                                 params=model.parameters(),
                                 momentum=config.train.momentum,
                                 nesterov=config.train.nesterov)
