@@ -358,6 +358,9 @@ def post_train(config, model, images, train_loader):
                 delta.clamp_(-epsilon, epsilon)
                 adv_input = data + delta
 
+                adv_input = torch.hstack([adv_input, adv_input])
+                print(adv_input.shape)
+
                 adv_output = model(adv_input.detach())
                 adv_class = torch.argmax(adv_output)
                 defense_success += 1 if adv_class == label else 0
