@@ -310,7 +310,7 @@ def post_train(config, model, images, train_loader):
         neighbour_output = fix_model(neighbour_images)
         neighbour_class = torch.argmax(neighbour_output).reshape(1)
 
-        for _ in range(3):
+        for _ in range(5):
             # reinforce train
             effective_count = 0
             loss_list = torch.Tensor([0 for _ in range(64)]).to(device)
