@@ -291,14 +291,14 @@ def merge_images(train_images, val_images, device):
 
 
 def post_train(config, model, images, train_loader):
-    alpha = 2 / 255
+    alpha = 10 / 255
     epsilon = 8 / 255
     loss_func = nn.CrossEntropyLoss()
     device = torch.device(config.device)
     model = copy.deepcopy(model)
     fix_model = copy.deepcopy(model)
     attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=5)
-    optimizer = torch.optim.SGD(lr=0.0005,
+    optimizer = torch.optim.SGD(lr=0.001,
                                 params=model.parameters(),
                                 momentum=config.train.momentum,
                                 nesterov=config.train.nesterov)
@@ -339,18 +339,18 @@ def post_train(config, model, images, train_loader):
                 target = neighbour_class if int(label) == original_class else original_class
                 assert target != label
                 # attack_model.set_mode_targeted_by_function(lambda im, la: target)
-                adv_input = attack_model(data, label)
+                # adv_input = attack_model(data, label)
 
                 # generate fgsm adv examples
-                # delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
-                # noise_input = data + delta
-                # noise_input.requires_grad = True
-                # noise_output = model(noise_input)
-                # loss = loss_func(noise_output, target)  # loss to be maximized
-                # input_grad = torch.autograd.grad(loss, noise_input)[0]
-                # delta = delta + alpha * torch.sign(input_grad)
-                # delta.clamp_(-epsilon, epsilon)
-                # adv_input = data + delta
+                delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
+                noise_input = data + delta
+                noise_input.requires_grad = True
+                noise_output = model(noise_input)
+                loss = loss_func(noise_output, target)  # loss to be maximized
+                input_grad = torch.autograd.grad(loss, noise_input)[0]
+                delta = delta + alpha * torch.sign(input_grad)
+                delta.clamp_(-epsilon, epsilon)
+                adv_input = data + delta
 
                 adv_output = model(adv_input.detach())
                 adv_class = torch.argmax(adv_output)
