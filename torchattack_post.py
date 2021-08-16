@@ -298,7 +298,7 @@ def post_train(config, model, images, train_loader):
     model = copy.deepcopy(model)
     fix_model = copy.deepcopy(model)
     attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
-    optimizer = torch.optim.SGD(lr=0.01,
+    optimizer = torch.optim.SGD(lr=0.005,
                                 params=model.parameters(),
                                 momentum=config.train.momentum,
                                 nesterov=config.train.nesterov)
@@ -312,7 +312,7 @@ def post_train(config, model, images, train_loader):
 
         for _ in range(5):
             # reinforce train
-            count_cap = 8
+            count_cap = 12
             effective_count = 0
             effective_original_count = 0
             effective_neighbour_count = 0
