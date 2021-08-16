@@ -153,7 +153,7 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
             success_meter.update(success, 1)
             accuracy_meter.update(acc, 1)
             print("Batch {} attack success: {}\tdefense acc: {}({})\n".format(i, success, acc, accuracy_meter.avg))
-            input()
+            # input()
         adv_image_list.append(adv_images)
 
     logger.info(f'Success: {success_meter.avg:.4f} Accuracy {accuracy_meter.avg:.4f} Delta {delta_meter.avg:.4f}')
@@ -358,7 +358,7 @@ def post_train(config, model, images, train_loader):
                 loss_pos = loss_func(adv_output, label)
                 loss_neg = loss_func(adv_output, target)
                 loss_list[effective_count - 1] = loss_pos
-                print(int(label), int(torch.argmax(adv_output)), loss_list[effective_count - 1])
+                # print(int(label), int(torch.argmax(adv_output)), loss_list[effective_count - 1])
 
             loss = torch.sum(loss_list) / effective_count
             print('loss: {:.4f}  acc: {:.4f}'.format(loss, defense_success / (count_cap * 2)))
