@@ -343,7 +343,7 @@ def post_train(config, model, images, train_loader):
                 loss_pos = loss_func(adv_output, label)
                 loss_neg = loss_func(adv_output, target)
                 loss_list[effective_count] = loss_pos
-                print(int(label), int(torch.argmax(adv_output)), loss_list[i])
+                print(int(label), int(torch.argmax(adv_output)), loss_list[effective_count])
 
             loss = torch.sum(loss_list) / effective_count
             print(loss)
