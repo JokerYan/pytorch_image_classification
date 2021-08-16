@@ -291,7 +291,7 @@ def merge_images(train_images, val_images, device):
 
 
 def post_train(config, model, images, train_loader):
-    alpha = 10 / 255
+    alpha = 2 / 255
     epsilon = 8 / 255
     loss_func = nn.CrossEntropyLoss()
     device = torch.device(config.device)
