@@ -96,6 +96,7 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
 
     success_meter = AverageMeter()
     accuracy_meter = AverageMeter()
+    post_accuracy_meter = AverageMeter()
     delta_meter = AverageMeter()
 
     adv_image_list = []
@@ -141,8 +142,8 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
             print("post", post_trained_output)
             print(torch.argmax(post_trained_output), labels)
             # # acc = cal_accuracy(normal_output, labels)
-            # acc = cal_accuracy(adv_output, labels)
-            acc = cal_accuracy(post_trained_output, labels)
+            acc = cal_accuracy(adv_output, labels)
+            post_acc = cal_accuracy(post_trained_output, labels)
             # acc = cal_accuracy(post_output, labels)
             if attack_target_class == -1:
                 success = cal_accuracy(adv_output, attack_target_list[-1])
@@ -152,7 +153,9 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
                 success = 0
             success_meter.update(success, 1)
             accuracy_meter.update(acc, 1)
-            print("Batch {} attack success: {}\tdefense acc: {}({})\n".format(i, success, acc, accuracy_meter.avg))
+            post_accuracy_meter.update(post_acc, 1)
+            print("Batch {} success: {}\tacc: {}({})\tpost acc: {}({})\n".format(
+                i, success, acc, accuracy_meter.avg, post_acc, post_accuracy_meter.avg))
             # input()
         adv_image_list.append(adv_images)
 
