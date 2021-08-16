@@ -322,10 +322,10 @@ def post_train(config, model, images, train_loader):
             effective_count = 0
             effective_original_count = 0
             effective_neighbour_count = 0
-            defense_success = 0
+            # defense_success = 0
             # loss_list = torch.Tensor([0 for _ in range(count_cap * 2)]).to(device)
-            input_list = torch.Tensor([images for _ in range(count_cap * 2)])
-            target_list = torch.Tensor([0 for _ in range(count_cap * 2)])
+            input_list = torch.zeros([count_cap*2, 3, 32, 32])
+            target_list = torch.zeros([count_cap*2])
             while effective_count < count_cap * 2:
                 data, label = next(iter(train_loader))
                 data = data.to(device)
