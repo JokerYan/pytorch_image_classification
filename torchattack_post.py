@@ -339,7 +339,19 @@ def post_train(config, model, images, train_loader):
                 target = neighbour_class if int(label) == original_class else original_class
                 assert target != label
                 # attack_model.set_mode_targeted_by_function(lambda im, la: target)
-                adv_input = attack_model(data, label)
+                # adv_input = attack_model(data, label)
+
+                # generate fgsm adv examples
+                delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
+                noise_input = data + delta
+                noise_input.requires_grad = True
+                noise_output = model(noise_input)
+                loss = loss_func(noise_output, target)  # loss to be maximized
+                input_grad = torch.autograd.grad(loss, noise_input)[0]
+                delta = delta + alpha * torch.sign(input_grad)
+                delta.clamp_(-epsilon, epsilon)
+                adv_input = data + delta
+
                 adv_output = model(adv_input)
                 adv_class = torch.argmax(adv_output)
                 defense_success += 1 if adv_class == label else 0
