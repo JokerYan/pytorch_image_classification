@@ -366,15 +366,19 @@ def post_train(config, model, images, train_loaders_by_class):
             target = torch.hstack([neighbour_label, original_label]).to(device)
 
             # generate fgsm adv examples
-            delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
-            noise_input = data + delta
-            noise_input.requires_grad = True
-            noise_output = model(noise_input)
-            loss = loss_func(noise_output, target)  # loss to be maximized
-            input_grad = torch.autograd.grad(loss, noise_input)[0]
-            delta = delta + alpha * torch.sign(input_grad)
-            delta.clamp_(-epsilon, epsilon)
-            adv_input = data + delta
+            # delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
+            # noise_input = data + delta
+            # noise_input.requires_grad = True
+            # noise_output = model(noise_input)
+            # loss = loss_func(noise_output, target)  # loss to be maximized
+            # input_grad = torch.autograd.grad(loss, noise_input)[0]
+            # delta = delta + alpha * torch.sign(input_grad)
+            # delta.clamp_(-epsilon, epsilon)
+            # adv_input = data + delta
+
+            # generate pgd adv example
+            attack_model.set_mode_targeted_by_function(lambda im, la: target)
+            adv_input = attack_model(data, label)
 
             adv_output = model(adv_input.detach())
             # adv_class = torch.argmax(adv_output)
