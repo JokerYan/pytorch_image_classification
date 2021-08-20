@@ -18,6 +18,7 @@ import tqdm
 
 from fvcore.common.checkpoint import Checkpointer
 
+from custom_loss.target_bce_loss import TargetBCELoss
 from pytorch_image_classification import (
     apply_data_parallel_wrapper,
     create_dataloader,
@@ -306,6 +307,7 @@ def post_train(config, model, images, train_loaders_by_class):
                                 params=model.parameters(),
                                 momentum=config.train.momentum,
                                 nesterov=config.train.nesterov)
+    target_bce_loss_func = TargetBCELoss()
     with torch.enable_grad():
         # find neighbour
         original_output = fix_model(images)
@@ -384,6 +386,8 @@ def post_train(config, model, images, train_loaders_by_class):
             # adv_class = torch.argmax(adv_output)
             loss_pos = loss_func(adv_output, label)
             loss_neg = loss_func(adv_output, target)
+
+            bce_loss = target_bce_loss_func(adv_output, label, original_class, neighbour_class)
             # loss_list[effective_count - 1] = loss_pos
             # print(int(label), int(torch.argmax(adv_output)), loss_list[effective_count - 1])
 
