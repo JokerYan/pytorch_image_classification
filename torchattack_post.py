@@ -302,7 +302,7 @@ def post_train(config, model, images, train_loaders_by_class):
     model = copy.deepcopy(model)
     fix_model = copy.deepcopy(model)
     attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=5)
-    optimizer = torch.optim.SGD(lr=0.003,
+    optimizer = torch.optim.SGD(lr=0.001,
                                 params=model.parameters(),
                                 momentum=config.train.momentum,
                                 nesterov=config.train.nesterov)
