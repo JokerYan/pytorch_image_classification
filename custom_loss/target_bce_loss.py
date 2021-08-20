@@ -21,7 +21,7 @@ class TargetBCELoss:
         zeros = torch.zeros_like(label)
         binary_target = torch.where(label == int(first_class), ones, zeros)
 
-        print(output)
+        print(binary_output)
         print(label)
         print(binary_softmax_output)
         print(first_class, second_class)
