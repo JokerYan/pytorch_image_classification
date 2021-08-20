@@ -14,7 +14,7 @@ class TargetBCELoss:
             torch.unsqueeze(first_output, 0),
             torch.unsqueeze(second_output, 0)]
         )
-        binary_output = torch.vstack([
+        binary_output = torch.hstack([
             first_output,
             second_output]
         )
