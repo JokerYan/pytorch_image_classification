@@ -83,7 +83,7 @@ def random_target_function(images, labels):
     return attack_target
 
 
-def attack(config, model, train_loader, test_loader, train_loaders_by_class, loss_func, logger):
+def attack(config, model, train_loader, val_loader, train_loaders_by_class, loss_func, logger):
     device = torch.device(config.device)
     print(torchattacks.__file__)
 
@@ -107,7 +107,7 @@ def attack(config, model, train_loader, test_loader, train_loaders_by_class, los
         mean, std
     )
 
-    for i, (data, labels) in enumerate(test_loader):
+    for i, (data, labels) in enumerate(val_loader):
         if i == 100:
             break
         data = data.to(device)
@@ -532,7 +532,7 @@ def post_tune(config, model, images, train_loader):
 
 def main():
     # config = load_config(["train.batch_size", 1, "validation.batch_size", 1, "test.batch_size", 1])
-    config = load_config(["test.batch_size", 1])
+    config = load_config(["validation.batch_size", 1, "test.batch_size", 1])
 
     if config.test.output_dir is None:
         output_dir = pathlib.Path(config.test.checkpoint).parent
@@ -555,11 +555,11 @@ def main():
                                     save_dir=output_dir)
         checkpointer.load(config.test.checkpoint)
 
-    train_loader, test_loader = create_dataloader(config, is_train=True)
+    train_loader, val_loader = create_dataloader(config, is_train=True)
     train_loaders_by_class = create_dataloader_by_class(config)
     _, test_loss = create_loss(config)
 
-    attack(config, model, train_loader, test_loader, train_loaders_by_class, test_loss, logger)
+    attack(config, model, train_loader, val_loader, train_loaders_by_class, test_loss, logger)
 
 
 if __name__ == '__main__':
