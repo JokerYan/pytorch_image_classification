@@ -386,13 +386,10 @@ def post_train(config, model, images, train_loaders_by_class):
             # adv_class = torch.argmax(adv_output)
             loss_pos = loss_func(adv_output, label)
             loss_neg = loss_func(adv_output, target)
-
             bce_loss = target_bce_loss_func(adv_output, label, original_class, neighbour_class)
-            # loss_list[effective_count - 1] = loss_pos
-            # print(int(label), int(torch.argmax(adv_output)), loss_list[effective_count - 1])
 
             # loss = torch.mean(loss_list)
-            loss = loss_pos
+            loss = bce_loss
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()

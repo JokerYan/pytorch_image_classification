@@ -17,14 +17,6 @@ class TargetBCELoss:
         ones = torch.ones_like(label)
         zeros = torch.zeros_like(label)
         binary_target = torch.where(label == int(first_class), ones, zeros).float()
-        #
-        # print(first_output.shape)
-        # print(binary_output.shape)
-        # print(label)
-        # print(binary_softmax_output)
-        # print(first_class, second_class)
-        # print(binary_target)
 
         loss = self.bce_loss(binary_first_class_output, binary_target)
-
         return loss
