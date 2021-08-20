@@ -6,7 +6,7 @@ import torch
 import torchvision
 import yacs.config
 
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, Subset
 
 from pytorch_image_classification import create_transform
 
@@ -85,3 +85,18 @@ def create_dataset(config: yacs.config.CfgNode,
         return train_dataset, val_dataset
     else:
         raise ValueError()
+
+
+# load training dataset split by class
+def create_dataset_by_class(config: yacs.config.CfgNode):
+    base_dataset, _ = create_dataset(config, is_train=True)
+    indices_list = [[] for _ in range(config.dataset.n_classes)]
+    for i in range(len(base_dataset)):
+        label = int(base_dataset[i][1])
+        indices_list[label].append(i)
+    dataset_list = [Subset(base_dataset, indices) for indices in indices_list]
+    return dataset_list
+
+
+
+

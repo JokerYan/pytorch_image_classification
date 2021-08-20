@@ -26,6 +26,7 @@ from pytorch_image_classification import (
     get_default_config,
     update_config, create_optimizer,
 )
+from pytorch_image_classification.datasets.dataloader import create_dataloader_by_class
 from pytorch_image_classification.models import create_input_sigmoid_model, create_expert_model
 from pytorch_image_classification.transforms import _get_dataset_stats
 from pytorch_image_classification.utils import (
@@ -82,7 +83,7 @@ def random_target_function(images, labels):
     return attack_target
 
 
-def attack(config, model, train_loader, test_loader, loss_func, logger):
+def attack(config, model, train_loader, test_loader, train_loaders_by_class, loss_func, logger):
     device = torch.device(config.device)
     print(torchattacks.__file__)
 
@@ -134,7 +135,7 @@ def attack(config, model, train_loader, test_loader, loss_func, logger):
             # test_random(config, model, data)
             # post_test(config, model, adv_images, data, labels)
             # post_tuned_model = post_tune(config, model, adv_images, train_loader)
-            post_trained_model = post_train(config, model, adv_images, train_loader)
+            post_trained_model = post_train(config, model, adv_images, train_loaders_by_class)
             # post_tuned_output = post_tuned_model(adv_images)
             post_trained_output = post_trained_model(adv_images)
             print()
@@ -293,7 +294,7 @@ def merge_images(train_images, val_images, device):
     return image
 
 
-def post_train(config, model, images, train_loader):
+def post_train(config, model, images, train_loaders_by_class):
     alpha = 2 / 255
     epsilon = 8 / 255
     loss_func = nn.CrossEntropyLoss()
@@ -317,45 +318,52 @@ def post_train(config, model, images, train_loader):
             return model
 
         for _ in range(5):
-            # reinforce train
-            count_cap = 8
-            effective_count = 0
-            effective_original_count = 0
-            effective_neighbour_count = 0
-            # defense_success = 0
-            # loss_list = torch.Tensor([0 for _ in range(count_cap * 2)]).to(device)
-            input_list = torch.zeros([count_cap*2, 3, 32, 32]).to(device)
-            label_list = torch.zeros([count_cap*2]).to(device)
-            target_list = torch.zeros([count_cap*2]).to(device)
-            while effective_count < count_cap * 2:
-                data, label = next(iter(train_loader))
-                data = data.to(device)
-                label = label.to(device)
-                if int(label) != int(original_class) and int(label) != int(neighbour_class):
-                    continue
-                if int(label) == int(original_class):
-                    if effective_original_count > count_cap:
-                        continue
-                    else:
-                        effective_original_count += 1
-                if int(label) == int(neighbour_class):
-                    if effective_neighbour_count > count_cap:
-                        continue
-                    else:
-                        effective_neighbour_count +=1
-                effective_count += 1
-                # targeted attack
-                target = neighbour_class if int(label) == original_class else original_class
-                assert target != label
-                # attack_model.set_mode_targeted_by_function(lambda im, la: target)
-                # adv_input = attack_model(data, label)
-                input_list[effective_count - 1] = data
-                label_list[effective_count - 1] = label
-                target_list[effective_count - 1] = target
+            # # reinforce train
+            # count_cap = 8
+            # effective_count = 0
+            # effective_original_count = 0
+            # effective_neighbour_count = 0
+            # # defense_success = 0
+            # # loss_list = torch.Tensor([0 for _ in range(count_cap * 2)]).to(device)
+            # input_list = torch.zeros([count_cap*2, 3, 32, 32]).to(device)
+            # label_list = torch.zeros([count_cap*2]).to(device)
+            # target_list = torch.zeros([count_cap*2]).to(device)
+            # while effective_count < count_cap * 2:
+            #     data, label = next(iter(train_loader))
+            #     data = data.to(device)
+            #     label = label.to(device)
+            #     if int(label) != int(original_class) and int(label) != int(neighbour_class):
+            #         continue
+            #     if int(label) == int(original_class):
+            #         if effective_original_count > count_cap:
+            #             continue
+            #         else:
+            #             effective_original_count += 1
+            #     if int(label) == int(neighbour_class):
+            #         if effective_neighbour_count > count_cap:
+            #             continue
+            #         else:
+            #             effective_neighbour_count +=1
+            #     effective_count += 1
+            #     # targeted attack
+            #     target = neighbour_class if int(label) == original_class else original_class
+            #     assert target != label
+            #     # attack_model.set_mode_targeted_by_function(lambda im, la: target)
+            #     # adv_input = attack_model(data, label)
+            #     input_list[effective_count - 1] = data
+            #     label_list[effective_count - 1] = label
+            #     target_list[effective_count - 1] = target
+            #
+            # data = input_list.detach()
+            # label = label_list.long().detach()
+            # target = target_list.long().detach()
 
-            data = input_list.detach()
-            label = label_list.long().detach()
-            target = target_list.long().detach()
+            original_data, original_label = next(iter(train_loaders_by_class[original_class]))
+            neighbour_data, neighbour_label = next(iter(train_loaders_by_class[neighbour_class]))
+
+            data = torch.vstack([original_data, neighbour_data])
+            label = torch.vstack([original_label, neighbour_label])
+            target = torch.vstack([neighbour_label, original_label])
 
             # generate fgsm adv examples
             delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
@@ -523,7 +531,8 @@ def post_tune(config, model, images, train_loader):
 
 
 def main():
-    config = load_config(["train.batch_size", 1, "validation.batch_size", 1, "test.batch_size", 1])
+    # config = load_config(["train.batch_size", 1, "validation.batch_size", 1, "test.batch_size", 1])
+    config = load_config(["test.batch_size", 1])
 
     if config.test.output_dir is None:
         output_dir = pathlib.Path(config.test.checkpoint).parent
@@ -547,9 +556,10 @@ def main():
         checkpointer.load(config.test.checkpoint)
 
     train_loader, test_loader = create_dataloader(config, is_train=True)
+    train_loaders_by_class = create_dataloader_by_class(config)
     _, test_loss = create_loss(config)
 
-    attack(config, model, train_loader, test_loader, test_loss, logger)
+    attack(config, model, train_loader, test_loader, train_loaders_by_class, test_loss, logger)
 
 
 if __name__ == '__main__':

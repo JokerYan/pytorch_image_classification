@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 
 from pytorch_image_classification import create_collator
 from pytorch_image_classification.datasets import create_dataset
+from pytorch_image_classification.datasets.datasets import create_dataset_by_class
 
 
 def worker_init_fn(worker_id: int) -> None:
@@ -73,3 +74,19 @@ def create_dataloader(
             drop_last=False,
             pin_memory=config.test.dataloader.pin_memory)
         return test_loader
+
+
+# load training data split in classes
+def create_dataloader_by_class(config: yacs.config.CfgNode):
+    dataset_list = create_dataset_by_class(config)
+    dataloader_list = []
+    for dataset in dataloader_list:
+        dataloader = torch.utils.data.DataLoader(
+            dataset,
+            batch_size=config.train.batch_size,
+            num_workers=config.train.dataloader.num_workers,
+            pin_memory=config.train.dataloader.pin_memory,
+            shuffle=True
+        )
+        dataloader_list.append(dataloader)
+    return dataloader_list
