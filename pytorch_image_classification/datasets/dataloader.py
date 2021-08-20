@@ -80,7 +80,7 @@ def create_dataloader(
 def create_dataloader_by_class(config: yacs.config.CfgNode):
     dataset_list = create_dataset_by_class(config)
     dataloader_list = []
-    for dataset in dataloader_list:
+    for dataset in dataset_list:
         dataloader = torch.utils.data.DataLoader(
             dataset,
             batch_size=config.train.batch_size,

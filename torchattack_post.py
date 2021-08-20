@@ -358,7 +358,6 @@ def post_train(config, model, images, train_loaders_by_class):
             # label = label_list.long().detach()
             # target = target_list.long().detach()
 
-            print(original_class, len(train_loaders_by_class))
             original_data, original_label = next(iter(train_loaders_by_class[original_class]))
             neighbour_data, neighbour_label = next(iter(train_loaders_by_class[neighbour_class]))
 
