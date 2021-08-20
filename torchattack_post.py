@@ -365,6 +365,8 @@ def post_train(config, model, images, train_loaders_by_class):
             label = torch.vstack([original_label, neighbour_label]).to(device)
             target = torch.vstack([neighbour_label, original_label]).to(device)
 
+            print(target)
+
             # generate fgsm adv examples
             delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
             noise_input = data + delta
