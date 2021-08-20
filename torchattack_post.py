@@ -361,9 +361,9 @@ def post_train(config, model, images, train_loaders_by_class):
             original_data, original_label = next(iter(train_loaders_by_class[original_class]))
             neighbour_data, neighbour_label = next(iter(train_loaders_by_class[neighbour_class]))
 
-            data = torch.vstack([original_data, neighbour_data])
-            label = torch.vstack([original_label, neighbour_label])
-            target = torch.vstack([neighbour_label, original_label])
+            data = torch.vstack([original_data, neighbour_data]).to(device)
+            label = torch.vstack([original_label, neighbour_label]).to(device)
+            target = torch.vstack([neighbour_label, original_label]).to(device)
 
             # generate fgsm adv examples
             delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
