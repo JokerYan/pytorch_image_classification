@@ -379,7 +379,7 @@ def post_train(config, model, images, train_loaders_by_class):
             # adv_input = data + delta
 
             # generate pgd adv example
-            attack_model.set_mode_targeted_by_function(lambda im, la: target)
+            # attack_model.set_mode_targeted_by_function(lambda im, la: target)
             adv_input = attack_model(data, label)
 
             adv_output = model(adv_input.detach())
