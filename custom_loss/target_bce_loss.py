@@ -14,6 +14,10 @@ class TargetBCELoss:
             torch.unsqueeze(first_output, 0),
             torch.unsqueeze(second_output, 0)]
         )
+        binary_output = torch.vstack([
+            first_output,
+            second_output]
+        )
         binary_softmax_output = torch.softmax(binary_output, dim=1)
         binary_first_class_output = binary_softmax_output[:, 0]
 
