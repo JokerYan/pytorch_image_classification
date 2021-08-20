@@ -303,7 +303,7 @@ def post_train(config, model, images, train_loaders_by_class):
     model = copy.deepcopy(model)
     fix_model = copy.deepcopy(model)
     attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=5)
-    optimizer = torch.optim.SGD(lr=0.0005,
+    optimizer = torch.optim.SGD(lr=0.001,
                                 params=model.parameters(),
                                 momentum=config.train.momentum,
                                 nesterov=config.train.nesterov)
@@ -319,7 +319,7 @@ def post_train(config, model, images, train_loaders_by_class):
         if original_class == neighbour_class:
             return model
 
-        for _ in range(20):
+        for _ in range(10):
             # # reinforce train
             # count_cap = 8
             # effective_count = 0
@@ -368,19 +368,20 @@ def post_train(config, model, images, train_loaders_by_class):
             target = torch.hstack([neighbour_label, original_label]).to(device)
 
             # generate fgsm adv examples
-            # delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
-            # noise_input = data + delta
-            # noise_input.requires_grad = True
-            # noise_output = model(noise_input)
-            # loss = loss_func(noise_output, target)  # loss to be maximized
-            # input_grad = torch.autograd.grad(loss, noise_input)[0]
-            # delta = delta + alpha * torch.sign(input_grad)
-            # delta.clamp_(-epsilon, epsilon)
-            # adv_input = data + delta
+            delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
+            noise_input = data + delta
+            noise_input.requires_grad = True
+            noise_output = model(noise_input)
+            loss = loss_func(noise_output, label)  # loss to be maximized
+            # loss = target_bce_loss_func(adv_output, target, original_class, neighbour_class)  # bce loss to be maximized
+            input_grad = torch.autograd.grad(loss, noise_input)[0]
+            delta = delta + alpha * torch.sign(input_grad)
+            delta.clamp_(-epsilon, epsilon)
+            adv_input = data + delta
 
             # generate pgd adv example
             # attack_model.set_mode_targeted_by_function(lambda im, la: target)
-            adv_input = attack_model(data, label)
+            # adv_input = attack_model(data, label)
 
             adv_output = model(adv_input.detach())
             # adv_class = torch.argmax(adv_output)
@@ -389,7 +390,7 @@ def post_train(config, model, images, train_loaders_by_class):
             bce_loss = target_bce_loss_func(adv_output, label, original_class, neighbour_class)
 
             # loss = torch.mean(loss_list)
-            loss = bce_loss
+            loss = loss_pos
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
