@@ -289,8 +289,10 @@ def post_test(config, model, images, normal_images, labels):
         # input()
 
 
-def merge_images(train_images, val_images, device):
-    image = 0.9 * train_images.to(device) + 0.1 * val_images.to(device)
+def merge_images(train_images, val_images, ratio, device):
+    batch_size = len(train_images)
+    repeated_val_images = val_images.repeat(batch_size, 1, 1, 1, 1)
+    image = ratio * train_images.to(device) + (1 - ratio) * repeated_val_images.to(device)
     # image[0][channel] = 0.5 * image[0][channel].to(device) + 0.5 * val_images[0][channel].to(device)
     return image
 
@@ -325,6 +327,7 @@ def post_train(config, model, images, train_loaders_by_class):
             neighbour_data, neighbour_label = next(iter(train_loaders_by_class[neighbour_class]))
 
             data = torch.vstack([original_data, neighbour_data]).to(device)
+            data = merge_images(data, images, 0.9, device)
             label = torch.hstack([original_label, neighbour_label]).to(device)
             target = torch.hstack([neighbour_label, original_label]).to(device)
 
