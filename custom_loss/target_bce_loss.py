@@ -36,6 +36,5 @@ class TargetBLLoss:
         # zeros = torch.zeros_like(label)
         # binary_target = torch.where(label == int(first_class), ones, zeros).float()
 
-        print(binary_output)
         loss = torch.mean(binary_output[:, 0] - binary_output[:, 1])
         return loss
