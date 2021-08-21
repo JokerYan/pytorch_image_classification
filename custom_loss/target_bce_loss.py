@@ -29,8 +29,8 @@ class TargetBLLoss:
         second_output = output[:, second_class]  # batch_size x 1
 
         binary_output = torch.hstack([first_output, second_output])
-        # binary_softmax_output = torch.softmax(binary_output, dim=1)
-        binary_softmax_output = binary_output
+        binary_softmax_output = torch.softmax(binary_output, dim=1)
+        # binary_softmax_output = binary_output
         binary_first_class_output = binary_softmax_output[:, 0]
         binary_second_class_output = binary_softmax_output[:, 1]
         output_difference = binary_first_class_output - binary_second_class_output
