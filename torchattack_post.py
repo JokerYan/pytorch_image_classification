@@ -352,7 +352,7 @@ def post_train(config, model, images, train_loaders_by_class):
             bl_loss = target_bl_loss_func(adv_output, label, original_class, neighbour_class)
 
             # loss = torch.mean(loss_list)
-            loss = bce_loss
+            loss = bl_loss
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
