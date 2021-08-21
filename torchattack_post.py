@@ -327,7 +327,7 @@ def post_train(config, model, images, train_loaders_by_class):
             neighbour_data, neighbour_label = next(iter(train_loaders_by_class[neighbour_class]))
 
             data = torch.vstack([original_data, neighbour_data]).to(device)
-            # data = merge_images(data, images, 0.9, device)
+            data = merge_images(data, images, 0.7, device)
             label = torch.hstack([original_label, neighbour_label]).to(device)
             target = torch.hstack([neighbour_label, original_label]).to(device)
 
