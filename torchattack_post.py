@@ -320,46 +320,6 @@ def post_train(config, model, images, train_loaders_by_class):
             return model
 
         for _ in range(50):
-            # # reinforce train
-            # count_cap = 8
-            # effective_count = 0
-            # effective_original_count = 0
-            # effective_neighbour_count = 0
-            # # defense_success = 0
-            # # loss_list = torch.Tensor([0 for _ in range(count_cap * 2)]).to(device)
-            # input_list = torch.zeros([count_cap*2, 3, 32, 32]).to(device)
-            # label_list = torch.zeros([count_cap*2]).to(device)
-            # target_list = torch.zeros([count_cap*2]).to(device)
-            # while effective_count < count_cap * 2:
-            #     data, label = next(iter(train_loader))
-            #     data = data.to(device)
-            #     label = label.to(device)
-            #     if int(label) != int(original_class) and int(label) != int(neighbour_class):
-            #         continue
-            #     if int(label) == int(original_class):
-            #         if effective_original_count > count_cap:
-            #             continue
-            #         else:
-            #             effective_original_count += 1
-            #     if int(label) == int(neighbour_class):
-            #         if effective_neighbour_count > count_cap:
-            #             continue
-            #         else:
-            #             effective_neighbour_count +=1
-            #     effective_count += 1
-            #     # targeted attack
-            #     target = neighbour_class if int(label) == original_class else original_class
-            #     assert target != label
-            #     # attack_model.set_mode_targeted_by_function(lambda im, la: target)
-            #     # adv_input = attack_model(data, label)
-            #     input_list[effective_count - 1] = data
-            #     label_list[effective_count - 1] = label
-            #     target_list[effective_count - 1] = target
-            #
-            # data = input_list.detach()
-            # label = label_list.long().detach()
-            # target = target_list.long().detach()
-
             original_data, original_label = next(iter(train_loaders_by_class[original_class]))
             neighbour_data, neighbour_label = next(iter(train_loaders_by_class[neighbour_class]))
 
@@ -367,21 +327,21 @@ def post_train(config, model, images, train_loaders_by_class):
             label = torch.hstack([original_label, neighbour_label]).to(device)
             target = torch.hstack([neighbour_label, original_label]).to(device)
 
-            # generate fgsm adv examples
-            delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
-            noise_input = data + delta
-            noise_input.requires_grad = True
-            noise_output = model(noise_input)
-            # loss = loss_func(noise_output, label)  # loss to be maximized
-            loss = target_bce_loss_func(noise_output, label, original_class, neighbour_class)  # bce loss to be maximized
-            input_grad = torch.autograd.grad(loss, noise_input)[0]
-            delta = delta + alpha * torch.sign(input_grad)
-            delta.clamp_(-epsilon, epsilon)
-            adv_input = data + delta
+            # # generate fgsm adv examples
+            # delta = (torch.rand_like(data) * 2 - 1) * epsilon  # uniform rand from [-eps, eps]
+            # noise_input = data + delta
+            # noise_input.requires_grad = True
+            # noise_output = model(noise_input)
+            # # loss = loss_func(noise_output, label)  # loss to be maximized
+            # loss = target_bce_loss_func(noise_output, label, original_class, neighbour_class)  # bce loss to be maximized
+            # input_grad = torch.autograd.grad(loss, noise_input)[0]
+            # delta = delta + alpha * torch.sign(input_grad)
+            # delta.clamp_(-epsilon, epsilon)
+            # adv_input = data + delta
 
             # generate pgd adv example
             # attack_model.set_mode_targeted_by_function(lambda im, la: target)
-            # adv_input = attack_model(data, label)
+            adv_input = attack_model(data, label)
 
             adv_output = model(adv_input.detach())
             # adv_class = torch.argmax(adv_output)
@@ -390,7 +350,7 @@ def post_train(config, model, images, train_loaders_by_class):
             bce_loss = target_bce_loss_func(adv_output, label, original_class, neighbour_class)
 
             # loss = torch.mean(loss_list)
-            loss = bce_loss
+            loss = loss_pos
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
