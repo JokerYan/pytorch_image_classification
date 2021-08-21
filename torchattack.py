@@ -102,8 +102,8 @@ def attack(config, model, test_loader, loss_func, logger):
     )
 
     for i, (data, labels) in enumerate(test_loader):
-        if i == 100:
-            break
+        # if i == 100:
+        #     break
         data = data.to(device)
         labels = labels.to(device)
 
