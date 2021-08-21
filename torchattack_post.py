@@ -346,7 +346,7 @@ def post_train(config, model, images, train_loaders_by_class):
 
             adv_output = model(adv_input.detach())
             # adv_class = torch.argmax(adv_output)
-            loss_pos = loss_func(adv_output, label)
+            loss_pos = loss_func(adv_output / 10, label)
             loss_neg = loss_func(adv_output, target)
             bce_loss = target_bce_loss_func(adv_output, label, original_class, neighbour_class)
             bl_loss = target_bl_loss_func(adv_output, label, original_class, neighbour_class)
