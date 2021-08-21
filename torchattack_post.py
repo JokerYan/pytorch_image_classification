@@ -292,9 +292,10 @@ def post_test(config, model, images, normal_images, labels):
 def merge_images(train_images, val_images, ratio, device):
     batch_size = len(train_images)
     repeated_val_images = val_images.repeat(batch_size, 1, 1, 1, 1)
-    image = ratio * train_images.to(device) + (1 - ratio) * repeated_val_images.to(device)
+    print(repeated_val_images.shape, train_images.shape)
+    merged_images = ratio * train_images.to(device) + (1 - ratio) * repeated_val_images.to(device)
     # image[0][channel] = 0.5 * image[0][channel].to(device) + 0.5 * val_images[0][channel].to(device)
-    return image
+    return merged_images
 
 
 def post_train(config, model, images, train_loaders_by_class):
