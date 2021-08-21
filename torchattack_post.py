@@ -333,7 +333,7 @@ def post_train(config, model, images, train_loaders_by_class):
             noise_input = data + delta
             noise_input.requires_grad = True
             noise_output = model(noise_input)
-            loss = loss_func(noise_output / 10, label)  # loss to be maximized
+            loss = loss_func(noise_output / 0.1, label)  # loss to be maximized
             # loss = target_bce_loss_func(noise_output, label, original_class, neighbour_class)  # bce loss to be maximized
             input_grad = torch.autograd.grad(loss, noise_input)[0]
             delta = delta + alpha * torch.sign(input_grad)
@@ -346,7 +346,7 @@ def post_train(config, model, images, train_loaders_by_class):
 
             adv_output = model(adv_input.detach())
             # adv_class = torch.argmax(adv_output)
-            loss_pos = loss_func(adv_output / 10, label)
+            loss_pos = loss_func(adv_output / 0.1, label)
             loss_neg = loss_func(adv_output, target)
             bce_loss = target_bce_loss_func(adv_output, label, original_class, neighbour_class)
             bl_loss = target_bl_loss_func(adv_output, label, original_class, neighbour_class)
