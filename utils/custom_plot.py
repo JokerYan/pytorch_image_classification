@@ -19,4 +19,11 @@ class CustomPlot:
         for key in self.sequence_list_dict.keys():
             sequence_list = self.sequence_list_dict[key]
             sequence_list = np.array(sequence_list)
-            print(sequence_list.shape)
+            sequence_mean = np.mean(sequence_list, axis=0)
+            sequence_min = np.min(sequence_list, axis=0)
+            sequence_max = np.max(sequence_list, axis=0)
+            sequence_error_lower = sequence_mean - sequence_min
+            sequence_error_upper = sequence_max - sequence_mean
+            print(sequence_mean)
+            print(sequence_error_upper)
+            print(sequence_error_lower)
