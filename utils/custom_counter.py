@@ -2,6 +2,11 @@ class CustomCounter:
     def __init__(self):
         self.counter_dict = {}
 
+    def create_keys(self, keys):
+        for key in keys:
+            print('counter creating key: {}'.format(key))
+            self.counter_dict[key] = 0
+
     def increment(self, key, amount=1):
         if key not in self.counter_dict:
             self.counter_dict[key] = 0
