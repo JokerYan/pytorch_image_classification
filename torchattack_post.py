@@ -38,10 +38,12 @@ from pytorch_image_classification.utils import (
 from custom_torchattacks.custom_cw import CustomCW
 from custom_torchattacks.custom_pgd import CustomPGD
 from utils.custom_counter import CustomCounter
+from utils.custom_plot import CustomPlot
 
 
 attack_target_class = None
 custom_counter = CustomCounter()
+custom_plot = CustomPlot()
 
 def load_config(options=None):
     parser = argparse.ArgumentParser()
@@ -138,7 +140,8 @@ def attack(config, model, train_loader, val_loader, train_loaders_by_class, loss
             # test_random(config, model, data)
             # post_test(config, model, adv_images, data, labels)
             # post_tuned_model = post_tune(config, model, adv_images, train_loader)
-            post_trained_model, original_class, neighbour_class = post_train(config, model, adv_images, train_loaders_by_class)
+            post_trained_model, original_class, neighbour_class, post_loss_list, post_acc_list = \
+                post_train(config, model, adv_images, train_loaders_by_class)
             # post_tuned_output = post_tuned_model(adv_images)
             post_trained_output = post_trained_model(adv_images)
             print()
@@ -193,6 +196,11 @@ def attack(config, model, train_loader, val_loader, train_loaders_by_class, loss
                         custom_counter.increment('normal_wrong_neighbour_found')
                     else:
                         custom_counter.increment('normal_wrong_neighbour_lost')
+
+            # plotting
+            if True:
+                if post_loss_list is not None and post_acc_list is not None:
+                    custom_plot.add_data('post_loss', post_loss_list)
             custom_counter.report()
 
             # input()
@@ -357,8 +365,10 @@ def post_train(config, model, images, train_loaders_by_class):
         neighbour_class = torch.argmax(neighbour_output).reshape(1)
 
         if original_class == neighbour_class:
-            return model, original_class, neighbour_class
+            return model, original_class, neighbour_class, None, None
 
+        loss_list = []
+        acc_list = []
         for _ in range(50):
             original_data, original_label = next(iter(train_loaders_by_class[original_class]))
             neighbour_data, neighbour_label = next(iter(train_loaders_by_class[neighbour_class]))
@@ -397,8 +407,10 @@ def post_train(config, model, images, train_loaders_by_class):
             loss.backward()
             optimizer.step()
             defense_acc = cal_accuracy(adv_output, label)
+            loss_list.append(loss)
+            acc_list.append(defense_acc)
             print('loss: {:.4f}  acc: {:.4f}'.format(loss, defense_acc))
-    return model, original_class, neighbour_class
+    return model, original_class, neighbour_class, loss_list, acc_list
 
 
 def post_tune(config, model, images, train_loader):
