@@ -1,8 +1,13 @@
+import os
 import numpy as np
 import matplotlib
 
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
+
+
+save_root = os.path.join('.', 'debug')
+
 
 class CustomPlot:
     def __init__(self):
@@ -22,8 +27,12 @@ class CustomPlot:
             sequence_mean = np.mean(sequence_list, axis=0)
             sequence_min = np.min(sequence_list, axis=0)
             sequence_max = np.max(sequence_list, axis=0)
-            sequence_error_lower = sequence_mean - sequence_min
-            sequence_error_upper = sequence_max - sequence_mean
-            print(sequence_mean)
-            print(sequence_error_upper)
-            print(sequence_error_lower)
+
+            x = np.array([i for i in range(sequence_list.shape[1])])
+            y = sequence_mean
+            error_lower = sequence_mean - sequence_min
+            error_upper = sequence_max - sequence_mean
+
+            plt.errorbar(x, y, yerr=[error_lower, error_upper])
+            plt.title(key)
+            plt.savefig(os.path.join(save_root, '{}.png'.format(key)))
