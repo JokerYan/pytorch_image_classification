@@ -201,6 +201,15 @@ def attack(config, model, train_loader, val_loader, train_loaders_by_class, loss
             if True:
                 if post_loss_list is not None and post_acc_list is not None:
                     custom_plot.add_data('post_loss', post_loss_list)
+                    custom_plot.add_data('post_acc', post_acc_list)
+                if int(torch.argmax(adv_output)) != int(labels):
+                    if int(torch.argmax(post_trained_output)) == int(labels):
+                        custom_plot.add_data('post_loss_improve', post_loss_list)
+                        custom_plot.add_data('post_acc_improve', post_acc_list)
+                    else:
+                        custom_plot.add_data('post_loss_unchanged', post_loss_list)
+                        custom_plot.add_data('post_acc_unchanged', post_acc_list)
+
                 custom_plot.clear_plot()
                 custom_plot.plot()
             custom_counter.report()
