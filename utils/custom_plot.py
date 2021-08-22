@@ -9,7 +9,7 @@ class CustomPlot:
         self.sequence_list_dict = {}
 
     def add_data(self, key, sequence):
-        sequence = list(sequence)
+        sequence = [float(value) for value in sequence]
         if key not in self.sequence_list_dict:
             self.sequence_list_dict[key] = []
 
