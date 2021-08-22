@@ -201,6 +201,7 @@ def attack(config, model, train_loader, val_loader, train_loaders_by_class, loss
             if True:
                 if post_loss_list is not None and post_acc_list is not None:
                     custom_plot.add_data('post_loss', post_loss_list)
+                custom_plot.plot()
             custom_counter.report()
 
             # input()
