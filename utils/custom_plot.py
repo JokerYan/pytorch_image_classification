@@ -1,3 +1,4 @@
+import glob
 import os
 import numpy as np
 import matplotlib
@@ -19,6 +20,11 @@ class CustomPlot:
             self.sequence_list_dict[key] = []
 
         self.sequence_list_dict[key].append(sequence)
+
+    def clear_plot(self):
+        for f in glob.glob(os.path.join(save_root, '*.png')):
+            os.remove(f)
+        print('debug image cleared')
 
     def plot(self):
         for key in self.sequence_list_dict.keys():
