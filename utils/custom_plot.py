@@ -28,6 +28,8 @@ class CustomPlot:
 
     def plot(self):
         for key in self.sequence_list_dict.keys():
+            plt.figure()
+
             sequence_list = self.sequence_list_dict[key]
             sequence_list = np.array(sequence_list)
             sequence_mean = np.mean(sequence_list, axis=0)
@@ -41,5 +43,4 @@ class CustomPlot:
 
             plt.errorbar(x, y, yerr=[error_lower, error_upper])
             plt.title(key)
-            plt.legend(loc='lower right')
             plt.savefig(os.path.join(save_root, '{}.png'.format(key)))
