@@ -37,10 +37,11 @@ from pytorch_image_classification.utils import (
 )
 from custom_torchattacks.custom_cw import CustomCW
 from custom_torchattacks.custom_pgd import CustomPGD
-from utils.debug_tools import clear_debug_image, save_image_stack
+from utils.custom_counter import CustomCounter
 
 
 attack_target_class = None
+custom_counter = CustomCounter()
 
 def load_config(options=None):
     parser = argparse.ArgumentParser()
@@ -111,6 +112,7 @@ def attack(config, model, train_loader, val_loader, train_loaders_by_class, loss
     for i, (data, labels) in enumerate(val_loader):
         if i == 100:
             break
+        custom_counter.increment('total')
         data = data.to(device)
         labels = labels.to(device)
 
@@ -138,7 +140,7 @@ def attack(config, model, train_loader, val_loader, train_loaders_by_class, loss
             # post_tuned_model = post_tune(config, model, adv_images, train_loader)
             post_trained_model = post_train(config, model, adv_images, train_loaders_by_class)
             # post_tuned_output = post_tuned_model(adv_images)
-            post_trained_output = post_trained_model(adv_images)
+            post_trained_output, original_class, neighbour_class = post_trained_model(adv_images)
             print()
             print("adv ", adv_output)
             print("post", post_trained_output)
@@ -158,6 +160,41 @@ def attack(config, model, train_loader, val_loader, train_loaders_by_class, loss
             post_accuracy_meter.update(post_acc, 1)
             print("Batch {} success: {}\tacc: {}({:.4f})\tpost acc: {}({:.4f})\n".format(
                 i, success, acc, accuracy_meter.avg, post_acc, post_accuracy_meter.avg))
+
+            # counting
+            if True:
+                if int(torch.argmax(adv_output)) == int(labels):
+                    custom_counter.increment('adv_correct')
+                    if int(torch.argmax(post_trained_output)) == int(labels):
+                        custom_counter.increment('adv_correct_post_correct')
+                    else:
+                        custom_counter.increment('adv_correct_post_wrong')
+                    if int(labels) == int(original_class) or int(labels) == int(neighbour_class):
+                        custom_counter.increment('adv_correct_neighbour_found')
+                    else:
+                        custom_counter.increment('adv_correct_neighbour_lost')
+                if int(torch.argmax(adv_output)) != int(labels):
+                    custom_counter.increment('adv_wrong')
+                    if int(torch.argmax(post_trained_output)) == int(labels):
+                        custom_counter.increment('adv_wrong_post_correct')
+                    else:
+                        custom_counter.increment('adv_wrong_post_wrong')
+                    if int(labels) == int(original_class) or int(labels) == int(neighbour_class):
+                        custom_counter.increment('adv_wrong_neighbour_found')
+                    else:
+                        custom_counter.increment('adv_wrong_neighbour_lost')
+                if int(torch.argmax(normal_output)) != int(labels):
+                    custom_counter.increment('normal_wrong')
+                    if int(torch.argmax(post_trained_output)) == int(labels):
+                        custom_counter.increment('normal_wrong_post_correct')
+                    else:
+                        custom_counter.increment('normal_wrong_post_wrong')
+                    if int(labels) == int(original_class) or int(labels) == int(neighbour_class):
+                        custom_counter.increment('normal_wrong_neighbour_found')
+                    else:
+                        custom_counter.increment('normal_wrong_neighbour_lost')
+            custom_counter.report()
+
             # input()
         adv_image_list.append(adv_images)
 
@@ -320,7 +357,7 @@ def post_train(config, model, images, train_loaders_by_class):
         neighbour_class = torch.argmax(neighbour_output).reshape(1)
 
         if original_class == neighbour_class:
-            return model
+            return model, original_class, neighbour_class
 
         for _ in range(50):
             original_data, original_label = next(iter(train_loaders_by_class[original_class]))
@@ -361,7 +398,7 @@ def post_train(config, model, images, train_loaders_by_class):
             optimizer.step()
             defense_acc = cal_accuracy(adv_output, label)
             print('loss: {:.4f}  acc: {:.4f}'.format(loss, defense_acc))
-    return model
+    return model, original_class, neighbour_class
 
 
 def post_tune(config, model, images, train_loader):
