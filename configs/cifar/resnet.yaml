@@ -19,7 +19,7 @@ train:
   base_lr: 0.1
   momentum: 0.9
   nesterov: True
-  weight_decay: 1e-4
+  weight_decay: 5e-4
   output_dir: experiments/cifar10/resnet/exp00
   log_period: 100
   checkpoint_period: 100

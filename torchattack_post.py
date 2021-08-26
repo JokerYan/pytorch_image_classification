@@ -96,7 +96,7 @@ def attack(config, model, train_loader, val_loader, train_loaders_by_class, loss
     # attack_model = torchattacks.CW(model, c=1, steps=1000, lr=0.01)
     # attack_model = CustomCW(config, model, c=1, steps=200, lr=0.01)
     # attack_model.set_mode_targeted_by_function(random_target_function)
-    attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=20)
+    attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=50)
     # attack_model = CustomPGD(config, model, eps=8/255, alpha=2/255, steps=20)
 
     success_meter = AverageMeter()
@@ -360,7 +360,7 @@ def post_train(config, model, images, train_loaders_by_class):
     device = torch.device(config.device)
     model = copy.deepcopy(model)
     fix_model = copy.deepcopy(model)
-    attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=5)
+    attack_model = torchattacks.PGD(model, eps=8/255, alpha=2/255, steps=50)
     optimizer = torch.optim.SGD(lr=0.001,
                                 params=model.parameters(),
                                 momentum=config.train.momentum,
@@ -376,11 +376,13 @@ def post_train(config, model, images, train_loaders_by_class):
         neighbour_class = torch.argmax(neighbour_output).reshape(1)
 
         if original_class == neighbour_class:
-            return model, original_class, neighbour_class, None, None
+            pass
+            # return model, original_class, neighbour_class, None, None
 
         loss_list = []
         acc_list = []
         for _ in range(50):
+            neighbour_class = (original_class + random.randint(1, 9)) % 10
             original_data, original_label = next(iter(train_loaders_by_class[original_class]))
             neighbour_data, neighbour_label = next(iter(train_loaders_by_class[neighbour_class]))
 
