@@ -128,7 +128,9 @@ def attack(config, model, train_loader, val_loader, train_loaders_by_class, loss
         elif attack_target_class == -1:
             attack_model.set_mode_targeted_by_function(random_target_function)
 
-        adv_images = attack_model(data, labels)
+        # adv_images = attack_model(data, labels)
+        channel_tensor = torch.ones(3)
+        adv_images = attack_pgd(model, data, labels, epsilon=8/255*channel_tensor, alpha=2/255*channel_tensor, attack_iters=50, restarts=10)
 
         with torch.no_grad():
             adv_output = model(adv_images)
@@ -343,6 +345,47 @@ def post_test(config, model, images, normal_images, labels):
         print(neighbour_counter, '/', total_counter)
         # print(mode_counter, '/', total_counter)
         # input()
+
+
+def clamp(X, lower_limit, upper_limit):
+    return torch.max(torch.min(X, upper_limit), lower_limit)
+
+
+# migrated from fast fgsm rs
+# does pgd attack to return delta
+def attack_pgd(model, X, y, epsilon, alpha, attack_iters, restarts, opt=None):
+    lower_limit = 0
+    upper_limit = 1
+    max_loss = torch.zeros(y.shape[0]).cuda()
+    max_delta = torch.zeros_like(X).cuda()
+    for zz in range(restarts):
+        delta = torch.zeros_like(X).cuda()
+        for i in range(len(epsilon)):
+            delta[:, i, :, :].uniform_(-epsilon[i][0][0].item(), epsilon[i][0][0].item())
+        delta.data = clamp(delta, lower_limit - X, upper_limit - X)
+        delta.requires_grad = True
+        for _ in range(attack_iters):
+            output = model(X + delta)
+            index = torch.where(output.max(1)[1] == y)
+            if len(index[0]) == 0:
+                break
+            loss = F.cross_entropy(output, y)
+            if opt is not None:
+                with amp.scale_loss(loss, opt) as scaled_loss:
+                    scaled_loss.backward()
+            else:
+                loss.backward()
+            grad = delta.grad.detach()
+            d = delta[index[0], :, :, :]
+            g = grad[index[0], :, :, :]
+            d = clamp(d + alpha * torch.sign(g), -epsilon, epsilon)
+            d = clamp(d, lower_limit - X[index[0], :, :, :], upper_limit - X[index[0], :, :, :])
+            delta.data[index[0], :, :, :] = d
+            delta.grad.zero_()
+        all_loss = F.cross_entropy(model(X+delta), y, reduction='none').detach()
+        max_delta[all_loss >= max_loss] = delta.detach()[all_loss >= max_loss]
+        max_loss = torch.max(max_loss, all_loss)
+    return max_delta
 
 
 def merge_images(train_images, val_images, ratio, device):
