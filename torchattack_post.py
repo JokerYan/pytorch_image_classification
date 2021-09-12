@@ -129,8 +129,8 @@ def attack(config, model, train_loader, val_loader, train_loaders_by_class, loss
             attack_model.set_mode_targeted_by_function(random_target_function)
 
         # adv_images = attack_model(data, labels)
-        channel_tensor = torch.ones(3, 1, 1).to(device)
-        adv_images = attack_pgd(model, data, labels, epsilon=8/255*channel_tensor, alpha=2/255*channel_tensor, attack_iters=50, restarts=10)
+        std_dummy = torch.ones(3, 1, 1).to(device)
+        adv_images = attack_pgd(model, data, labels, epsilon=8/255/std_dummy, alpha=2/255/std_dummy, attack_iters=50, restarts=10)
 
         with torch.no_grad():
             adv_output = model(adv_images)

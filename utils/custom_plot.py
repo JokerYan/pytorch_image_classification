@@ -44,3 +44,4 @@ class CustomPlot:
             plt.errorbar(x, y, yerr=[error_lower, error_upper], ecolor='lightblue')
             plt.title(key)
             plt.savefig(os.path.join(save_root, '{}.png'.format(key)))
+            plt.close()
